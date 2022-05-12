@@ -1,20 +1,44 @@
 {
   "name": "async_arch_edu",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc && tsc-alias",
+    "start:auth": "node dist/auth_service",
+    "start:tasks": "node dist/tasks_service",
+    "dev:auth": "nodemon --watch .env --watch src/auth_service src/auth_service/index.ts",
+    "dev:tasks": "nodemon --watch .env --watch src/tasks_service src/tasks_service/index.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/AntePost/async_arch_edu.git"
-  },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/AntePost/async_arch_edu/issues"
+  "homepage": "https://github.com/AntePost/async_arch_edu#readme",
+  "dependencies": {
+    "amqplib": "^0.8.0",
+    "axios": "^0.27.2",
+    "body-parser": "^1.20.0",
+    "dotenv": "^16.0.0",
+    "envalid": "^7.3.1",
+    "express": "^4.18.1",
+    "express-async-handler": "^1.2.0",
+    "express-jwt": "^7.7.0",
+    "mysql2": "^2.3.3",
+    "njwt": "^1.2.0",
+    "secure-random": "^1.1.2",
+    "sequelize": "^6.19.0"
   },
-  "homepage": "https://github.com/AntePost/async_arch_edu#readme"
+  "devDependencies": {
+    "@swc/core": "^1.2.182",
+    "@swc/helpers": "^0.3.13",
+    "@tsconfig/node16-strictest-esm": "^1.0.1",
+    "@types/amqplib": "^0.8.2",
+    "@types/body-parser": "^1.19.2",
+    "@types/express": "^4.17.13",
+    "@types/secure-random": "^1.1.0",
+    "@typescript-eslint/eslint-plugin": "^5.22.0",
+    "@typescript-eslint/parser": "^5.22.0",
+    "eslint": "^8.15.0",
+    "nodemon": "^2.0.16",
+    "regenerator-runtime": "^0.13.9",
+    "ts-node": "^10.7.0",
+    "tsc-alias": "^1.6.7",
+    "tsconfig-paths": "^4.0.0",
+    "typescript": "^4.6.4"
+  }
 }
