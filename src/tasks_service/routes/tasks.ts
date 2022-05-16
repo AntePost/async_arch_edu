@@ -51,13 +51,14 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
       meta: {
         id: uuidv4(),
         name: EVENT_NAMES.task_created,
-        version: 1,
+        version: 2,
         producer: SERVICES.tasks_service,
         emittedAt: Date.now(),
       },
       data: {
         publicId: task.publicId,
-        description: task.description,
+        title: task.title,
+        jiraId: task.jiraId,
       },
     }
 

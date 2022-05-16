@@ -8,7 +8,8 @@ class Task extends Model {
   declare id: number
   declare publicId: string
   declare assignedTo: string
-  declare description: string
+  declare title: string
+  declare jiraId: string
   declare status: TASK_STATUSES
 
   static associate(models: Record<string, ModelStatic<Model>>) {
@@ -46,7 +47,15 @@ Task.init({
       isUUID: 4,
     },
   },
-  description: {
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    validate: {
+      not: /\[|\]/,
+    },
+  },
+  jiraId: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,

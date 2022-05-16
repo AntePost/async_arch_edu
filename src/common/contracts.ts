@@ -63,12 +63,13 @@ type TasksReassignedV1 = Event & {
 type TaskCreatedV1 = Event & {
   meta: {
     name: EVENT_NAMES.task_created
-    version: 1
+    version: 2
     producer: SERVICES.tasks_service
   }
   data: {
     publicId: string
-    description: string
+    title: string
+    jiraId: string
   }
 }
 
