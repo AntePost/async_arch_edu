@@ -9,6 +9,12 @@ enum TASK_STATUSES {
   completed = "completed",
 }
 
+enum TRANSACTION_STATUSES {
+  deduction = "deduction",
+  unclaimed_reward = "unclaimed_reward",
+  reward = "reward",
+}
+
 const enum MB_EXCHANGES {
   user_stream = "user_stream",
   task_stream = "task_stream",
@@ -26,6 +32,14 @@ const enum EVENT_NAMES {
 const enum SERVICES {
   auth_service = "auth_service",
   tasks_service = "tasks_service",
+  billing_service = "billing_service",
 }
 
-export { USER_ROLES, TASK_STATUSES, MB_EXCHANGES, EVENT_NAMES, SERVICES }
+export {
+  USER_ROLES,
+  TASK_STATUSES,
+  TRANSACTION_STATUSES,
+  MB_EXCHANGES,
+  EVENT_NAMES,
+  SERVICES,
+}

@@ -1,6 +1,11 @@
 import type { ConsumeMessage } from "amqplib"
 
-import { EVENT_NAMES, MB_EXCHANGES, TASK_STATUSES } from "@common/constants"
+import {
+  EVENT_NAMES,
+  MB_EXCHANGES,
+  TASK_STATUSES,
+  TRANSACTION_STATUSES,
+} from "@common/constants"
 import type {
   Event,
   TaskAddedV1,
@@ -11,8 +16,13 @@ import type {
 } from "@common/contracts"
 import { Task, User } from "@billing/models"
 import { RabbitMQ } from "@common/rabbitMQ"
+import { Transaction } from "@billing/models/Transaction"
 import { env } from "@billing/env"
+import { getRandomIntInclusive } from "@billing/helpers"
 import { isCertainEvent } from "@common/helperts"
+
+const deductionRange = [-20, -10] as const
+const rewardRange = [20, 40] as const
 
 const messageBroker = new RabbitMQ({
   hostname: env.RABBITMQ_HOST,
@@ -79,31 +89,97 @@ const initMessageBroker = async () => {
           content,
           EVENT_NAMES.task_added,
         )) {
-          await Task.upsert(content.data)
+          const { data } = content
+
+          const deduction = getRandomIntInclusive(...deductionRange)
+          const reward = getRandomIntInclusive(...rewardRange)
+
+          await Task.upsert(data)
+            .then(_res => Promise.all([
+              Transaction.create({
+                userId: data.assignedTo,
+                taskId: data.publicId,
+                difference: deduction,
+                status: TRANSACTION_STATUSES.deduction,
+              }),
+              Transaction.create({
+                taskId: data.publicId,
+                difference: reward,
+                status: TRANSACTION_STATUSES.unclaimed_reward,
+              }),
+            ]))
         } else if (isCertainEvent<TaskCompletedV1>(
           content,
           EVENT_NAMES.task_completed,
         )) {
-          await Task.update(
-            { status: TASK_STATUSES.completed },
-            { where: { publicId: content.data.publicId } },
-          )
+          const { data } = content
+
+          await Promise.all([
+            Task.update(
+              { status: TASK_STATUSES.completed },
+              { where: { publicId: data.publicId } },
+            ),
+            Transaction.update(
+              {
+                userId: data.assignedTo,
+                status: TRANSACTION_STATUSES.reward,
+                claimedAt: Date.now(),
+              },
+              { where: {
+                taskId: data.publicId,
+                status: TRANSACTION_STATUSES.unclaimed_reward,
+              } },
+            ),
+          ])
         } else if (isCertainEvent<TasksReassignedV1>(
           content,
           EVENT_NAMES.tasks_reassigned,
         )) {
-          const tasks = await Task.findAll({
-            where: {
-              publicId: content.data.map(task => task.publicId),
-            },
-          })
+          const { data } = content
 
-          await Promise.all(tasks.map(task => task.update({
-            assignedTo: content.data.find(taskInEv =>
-              task.publicId === taskInEv.publicId)?.assignedTo,
-          })))
+          const taskIds = data.map(task => task.publicId)
+
+          const [ tasks, transactions ] = await Promise.all([
+            Task.findAll({
+              where: {
+                publicId: taskIds,
+              },
+            }),
+            Transaction.findAll({
+              attributes: [
+                "id",
+                "taskId",
+                "difference",
+              ],
+              where: {
+                taskId: taskIds,
+                status: TRANSACTION_STATUSES.deduction,
+              },
+            }),
+          ])
+
+          const taskPromises = tasks.map(task => task.update({
+            assignedTo: data.find(taskInEv =>
+              taskInEv.publicId === task.publicId)?.assignedTo,
+          }))
+
+          const transactionPromise = Transaction.bulkCreate(data.map(task => {
+            return {
+              taskId: task.publicId,
+              userId: task.assignedTo,
+              difference: transactions.find(tr => tr.taskId === task.publicId)
+                ?.difference,
+              status: TRANSACTION_STATUSES.deduction,
+            }
+          }))
+
+          await Promise.all([
+            ...taskPromises,
+            transactionPromise,
+          ])
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
+          return
         }
         this.channel.ack(msg)
       }

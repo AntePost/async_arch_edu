@@ -35,6 +35,7 @@ const initMessageBroker = async () => {
           await User.upsert(content.data)
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
+          return
         }
         this.channel.ack(msg)
       }
