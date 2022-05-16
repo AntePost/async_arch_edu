@@ -1,7 +1,7 @@
 import type { ConsumeMessage } from "amqplib"
 
 import { EVENT_NAMES, MB_EXCHANGES } from "@common/constants"
-import type { Event, UserCreatedCudEvent } from "@common/contracts"
+import type { Event, UserCreatedV1 } from "@common/contracts"
 import { RabbitMQ } from "@common/rabbitMQ"
 import { User } from "@tasks/models"
 import { env } from "@tasks/env"
@@ -13,20 +13,20 @@ const messageBroker = new RabbitMQ({
   password: env.RABBITMQ_PASSWORD,
 })
 
-const queueName = `${MB_EXCHANGES.cud_user}_to_tasks`
+const queueName = `${MB_EXCHANGES.user_stream}_to_tasks`
 
-const isUserCreatedCudEvent = (event: Event): event is UserCreatedCudEvent => {
+const isUserCreatedCudEvent = (event: Event): event is UserCreatedV1 => {
   return event.meta.name === EVENT_NAMES.user_created
 }
 
 const initMessageBroker = async () => {
   await messageBroker.init()
 
-  await messageBroker.assertExchange(MB_EXCHANGES.be_tasks, "fanout")
-  await messageBroker.assertExchange(MB_EXCHANGES.cud_tasks, "fanout")
+  await messageBroker.assertExchange(MB_EXCHANGES.task_lifecycle, "fanout")
+  await messageBroker.assertExchange(MB_EXCHANGES.task_stream, "fanout")
 
   await messageBroker.assertQueue(queueName)
-  await messageBroker.bindQueue(queueName, MB_EXCHANGES.cud_user)
+  await messageBroker.bindQueue(queueName, MB_EXCHANGES.user_stream)
 
   messageBroker.consumeEvent(
     queueName,

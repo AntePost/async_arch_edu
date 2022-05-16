@@ -12,7 +12,7 @@ const messageBroker = new RabbitMQ({
 const initMessageBroker = async () => {
   await messageBroker.init()
 
-  await messageBroker.assertExchange(MB_EXCHANGES.cud_user, "fanout")
+  await messageBroker.assertExchange(MB_EXCHANGES.user_stream, "fanout")
 }
 
 export { messageBroker, initMessageBroker }

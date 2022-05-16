@@ -1,14 +1,22 @@
-import type { EVENT_TYPES, USER_ROLES } from "./constants"
+import type { EVENT_NAMES, SERVICES, USER_ROLES } from "./constants"
 
 interface Event {
   meta: {
-    name: string
-    type: EVENT_TYPES
+    id: string
+    name?: EVENT_NAMES
+    version?: number
+    producer?: SERVICES
+    emittedAt: number
   }
   data: unknown
 }
 
-interface UserCreatedCudEvent extends Event {
+type UserCreatedV1 = Event & {
+  meta: {
+    name: EVENT_NAMES.user_created
+    version: 1
+    producer: SERVICES.auth_service
+  }
   data: {
     publicId: string
     email: string
@@ -16,26 +24,48 @@ interface UserCreatedCudEvent extends Event {
   }
 }
 
-interface TaskAddedBeEvent extends Event {
+type TaskAddedV1 = Event & {
+  meta: {
+    name: EVENT_NAMES.task_added
+    version: 1
+    producer: SERVICES.tasks_service
+  }
   data: {
     publicId: string
     assignedTo: string
   }
 }
 
-interface TaskCompletedBeEvent extends Event {
+type TaskCompletedV1 = Event & {
+  meta: {
+    name: EVENT_NAMES.task_completed
+    version: 1
+    producer: SERVICES.tasks_service
+  }
   data: {
     publicId: string
+    assignedTo: string
   }
 }
 
-interface TasksReassignedBeEvent extends Event {
+type TasksReassignedV1 = Event & {
+  meta: {
+    name: EVENT_NAMES.tasks_reassigned
+    version: 1
+    producer: SERVICES.tasks_service
+  }
   data: {
-    publicIds: string[]
-  }
+    publicId: string
+    assignedTo: string
+  }[]
 }
 
-interface TaskCreatedCudEvent extends Event {
+type TaskCreatedV1 = Event & {
+  meta: {
+    name: EVENT_NAMES.task_created
+    version: 1
+    producer: SERVICES.tasks_service
+  }
   data: {
     publicId: string
     description: string
@@ -44,9 +74,9 @@ interface TaskCreatedCudEvent extends Event {
 
 export {
   Event,
-  UserCreatedCudEvent,
-  TaskAddedBeEvent,
-  TaskCompletedBeEvent,
-  TasksReassignedBeEvent,
-  TaskCreatedCudEvent,
+  UserCreatedV1,
+  TaskAddedV1,
+  TaskCompletedV1,
+  TasksReassignedV1,
+  TaskCreatedV1,
 }

@@ -1,12 +1,14 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 
+import { USER_ROLES } from "@common/constants"
 import { db } from "@tasks/services"
+import { getEnumValues } from "@common/helperts"
 
 class User extends Model {
   declare id: number
   declare publicId: string
   declare email: string
-  declare role: string
+  declare role: USER_ROLES
 
   static associate(models: Record<string, ModelStatic<Model>>) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -27,14 +29,23 @@ User.init({
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     unique: true,
+    validate: {
+      isUUID: 4,
+    },
   },
   role: {
     type: DataTypes.STRING,
     defaultValue: "user",
+    validate: {
+      isIn: [getEnumValues(USER_ROLES)],
+    },
   },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      isEmail: true,
+    },
   },
 }, {
   sequelize: db,

@@ -1,17 +1,19 @@
 import express from "express"
+import { v4 as uuidv4 } from "uuid"
 
 import {
   EVENT_NAMES,
-  EVENT_TYPES,
   MB_EXCHANGES,
+  SERVICES,
+  TASK_STATUSES,
   USER_ROLES,
 } from "@common/constants"
 import { Task, User } from "@tasks/models"
 import type {
-  TaskAddedBeEvent,
-  TaskCompletedBeEvent,
-  TaskCreatedCudEvent,
-  TasksReassignedBeEvent,
+  TaskAddedV1,
+  TaskCompletedV1,
+  TaskCreatedV1,
+  TasksReassignedV1,
 } from "@common/contracts"
 import expressAsyncHandler from "express-async-handler"
 import { getRandomArrEl } from "@tasks/helpers"
@@ -27,10 +29,13 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
   const task = await Task.create({ description, assignedTo })
 
   {
-    const dataToStream: TaskAddedBeEvent = {
+    const dataToStream: TaskAddedV1 = {
       meta: {
+        id: uuidv4(),
         name: EVENT_NAMES.task_added,
-        type: EVENT_TYPES.business,
+        version: 1,
+        producer: SERVICES.tasks_service,
+        emittedAt: Date.now(),
       },
       data: {
         publicId: task.publicId,
@@ -38,14 +43,17 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
       },
     }
 
-    messageBroker.publishEvent(MB_EXCHANGES.be_tasks, dataToStream)
+    messageBroker.publishEvent(MB_EXCHANGES.task_lifecycle, dataToStream)
   }
 
   {
-    const dataToStream: TaskCreatedCudEvent = {
+    const dataToStream: TaskCreatedV1 = {
       meta: {
+        id: uuidv4(),
         name: EVENT_NAMES.task_created,
-        type: EVENT_TYPES.cud,
+        version: 1,
+        producer: SERVICES.tasks_service,
+        emittedAt: Date.now(),
       },
       data: {
         publicId: task.publicId,
@@ -53,7 +61,7 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
       },
     }
 
-    messageBroker.publishEvent(MB_EXCHANGES.cud_tasks, dataToStream)
+    messageBroker.publishEvent(MB_EXCHANGES.task_stream, dataToStream)
   }
 
   res.status(201).json({
@@ -83,19 +91,23 @@ tasksRouter.post("/complete", expressAsyncHandler(async (req, res) => {
     return
   }
 
-  await task.update({ isCompleted: true })
+  await task.update({ status: TASK_STATUSES.completed })
 
-  const dataToStream: TaskCompletedBeEvent = {
+  const dataToStream: TaskCompletedV1 = {
     meta: {
+      id: uuidv4(),
       name: EVENT_NAMES.task_completed,
-      type: EVENT_TYPES.business,
+      version: 1,
+      producer: SERVICES.tasks_service,
+      emittedAt: Date.now(),
     },
     data: {
       publicId: task.publicId,
+      assignedTo: task.assignedTo,
     },
   }
 
-  messageBroker.publishEvent(MB_EXCHANGES.be_tasks, dataToStream)
+  messageBroker.publishEvent(MB_EXCHANGES.task_lifecycle, dataToStream)
 
   res.json({ result: "ok" })
 }))
@@ -135,17 +147,20 @@ tasksRouter.post("/reassign", expressAsyncHandler(async (req, res) => {
     return task.update({ assignedTo: randomUser.publicId })
   }))
 
-  const dataToStream: TasksReassignedBeEvent = {
+  const dataToStream: TasksReassignedV1 = {
     meta: {
-      name: EVENT_NAMES.task_completed,
-      type: EVENT_TYPES.business,
+      id: uuidv4(),
+      name: EVENT_NAMES.tasks_reassigned,
+      version: 1,
+      producer: SERVICES.tasks_service,
+      emittedAt: Date.now(),
     },
-    data: {
-      publicIds: tasks.map(task => task.publicId),
-    },
+    data: tasks.map(task => {
+      return { publicId: task.publicId, assignedTo: task.assignedTo }
+    }),
   }
 
-  messageBroker.publishEvent(MB_EXCHANGES.be_tasks, dataToStream)
+  messageBroker.publishEvent(MB_EXCHANGES.task_lifecycle, dataToStream)
 
   res.json({ result: "ok" })
 }))
