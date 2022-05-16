@@ -60,7 +60,7 @@ type TasksReassignedV1 = Event & {
   }[]
 }
 
-type TaskCreatedV1 = Event & {
+type TaskCreatedV2 = Event & {
   meta: {
     name: EVENT_NAMES.task_created
     version: 2
@@ -79,5 +79,5 @@ export {
   TaskAddedV1,
   TaskCompletedV1,
   TasksReassignedV1,
-  TaskCreatedV1,
+  TaskCreatedV2,
 }

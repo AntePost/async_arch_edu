@@ -12,7 +12,7 @@ import { Task, User } from "@tasks/models"
 import type {
   TaskAddedV1,
   TaskCompletedV1,
-  TaskCreatedV1,
+  TaskCreatedV2,
   TasksReassignedV1,
 } from "@common/contracts"
 import expressAsyncHandler from "express-async-handler"
@@ -47,7 +47,7 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
   }
 
   {
-    const dataToStream: TaskCreatedV1 = {
+    const dataToStream: TaskCreatedV2 = {
       meta: {
         id: uuidv4(),
         name: EVENT_NAMES.task_created,

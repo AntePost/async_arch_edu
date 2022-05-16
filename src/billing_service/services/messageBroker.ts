@@ -8,7 +8,7 @@ import type {
   Event,
   TaskAddedV1,
   TaskCompletedV1,
-  TaskCreatedV1,
+  TaskCreatedV2,
   TasksReassignedV1,
   UserCreatedV1,
 } from "@common/contracts"
@@ -67,7 +67,7 @@ const initMessageBroker = async () => {
       if (msg) {
         const content = JSON.parse(msg.content.toString()) as Event
 
-        if (isCertainEvent<TaskCreatedV1>(content, EVENT_NAMES.task_created)) {
+        if (isCertainEvent<TaskCreatedV2>(content, EVENT_NAMES.task_created)) {
           await handleTaskCreated(content.data)
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))

@@ -3,7 +3,7 @@ import { Task, Transaction } from "@billing/models"
 import type {
   TaskAddedV1,
   TaskCompletedV1,
-  TaskCreatedV1,
+  TaskCreatedV2,
   TasksReassignedV1,
 } from "@common/contracts"
 import { getRandomIntInclusive } from "@billing/helpers"
@@ -11,7 +11,7 @@ import { getRandomIntInclusive } from "@billing/helpers"
 const deductionRange = [-20, -10] as const
 const rewardRange = [20, 40] as const
 
-const handleTaskCreated = async (data: TaskCreatedV1["data"]) => {
+const handleTaskCreated = async (data: TaskCreatedV2["data"]) => {
   await Task.upsert(data)
 }
 
