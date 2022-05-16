@@ -1,7 +1,7 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 
 import { TASK_STATUSES } from "@common/constants"
-import { db } from "@tasks/services"
+import { db } from "@billing/services"
 import { getEnumValues } from "@common/helperts"
 
 class Task extends Model {
@@ -37,10 +37,10 @@ Task.init({
   },
   assignedTo: {
     type: DataTypes.UUID,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: {
-        tableName: "tasks_Users",
+        tableName: "billing_Users",
       },
       key: "publicId",
     },
@@ -50,7 +50,7 @@ Task.init({
   },
   title: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     unique: true,
     validate: {
       not: /\[|\]/,
@@ -58,7 +58,7 @@ Task.init({
   },
   jiraId: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     unique: true,
   },
   status: {
@@ -70,7 +70,7 @@ Task.init({
   },
 }, {
   sequelize: db,
-  tableName: "tasks_Tasks",
+  tableName: "billing_Tasks",
 })
 
 export { Task }

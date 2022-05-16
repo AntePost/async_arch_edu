@@ -1,15 +1,22 @@
-import { DataTypes, Model } from "sequelize"
+import { DataTypes, Model, ModelStatic } from "sequelize"
 
 import { USER_ROLES } from "@common/constants"
-import { db } from "@auth/services"
+import { db } from "@billing/services"
 import { getEnumValues } from "@common/helperts"
 
 class User extends Model {
+  declare id: number
   declare publicId: string
-  declare role: USER_ROLES
   declare email: string
-  declare passwordHash: string
-  declare salt: string
+  declare role: USER_ROLES
+
+  static associate(models: Record<string, ModelStatic<Model>>) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.hasMany(models["Task"]!, {
+      foreignKey: "assignedTo",
+      as: "tasks",
+    })
+  }
 }
 
 User.init({
@@ -28,7 +35,7 @@ User.init({
   },
   role: {
     type: DataTypes.STRING,
-    defaultValue: USER_ROLES.user,
+    defaultValue: "user",
     validate: {
       isIn: [getEnumValues(USER_ROLES)],
     },
@@ -41,17 +48,9 @@ User.init({
       isEmail: true,
     },
   },
-  passwordHash: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  salt: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
 }, {
   sequelize: db,
-  tableName: "auth_Users",
+  tableName: "billing_Users",
 })
 
 export { User }

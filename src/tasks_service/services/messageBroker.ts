@@ -5,6 +5,7 @@ import type { Event, UserCreatedV1 } from "@common/contracts"
 import { RabbitMQ } from "@common/rabbitMQ"
 import { User } from "@tasks/models"
 import { env } from "@tasks/env"
+import { isCertainEvent } from "@common/helperts"
 
 const messageBroker = new RabbitMQ({
   hostname: env.RABBITMQ_HOST,
@@ -15,18 +16,14 @@ const messageBroker = new RabbitMQ({
 
 const queueName = `${MB_EXCHANGES.user_stream}_to_tasks`
 
-const isUserCreatedCudEvent = (event: Event): event is UserCreatedV1 => {
-  return event.meta.name === EVENT_NAMES.user_created
-}
-
 const initMessageBroker = async () => {
   await messageBroker.init()
-
-  await messageBroker.assertExchange(MB_EXCHANGES.task_lifecycle, "fanout")
-  await messageBroker.assertExchange(MB_EXCHANGES.task_stream, "fanout")
-
-  await messageBroker.assertQueue(queueName)
-  await messageBroker.bindQueue(queueName, MB_EXCHANGES.user_stream)
+    .then(_res => Promise.all([
+      messageBroker.assertExchange(MB_EXCHANGES.task_lifecycle, "fanout"),
+      messageBroker.assertExchange(MB_EXCHANGES.task_stream, "fanout"),
+      messageBroker.assertQueue(queueName),
+      messageBroker.bindQueue(queueName, MB_EXCHANGES.user_stream),
+    ]))
 
   messageBroker.consumeEvent(
     queueName,
@@ -34,11 +31,10 @@ const initMessageBroker = async () => {
       if (msg) {
         const content = JSON.parse(msg.content.toString()) as Event
 
-        if (isUserCreatedCudEvent(content)) {
+        if (isCertainEvent<UserCreatedV1>(content, EVENT_NAMES.user_created)) {
           await User.upsert(content.data)
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
-
         }
         this.channel.ack(msg)
       }

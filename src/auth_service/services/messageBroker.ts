@@ -11,8 +11,9 @@ const messageBroker = new RabbitMQ({
 
 const initMessageBroker = async () => {
   await messageBroker.init()
-
-  await messageBroker.assertExchange(MB_EXCHANGES.user_stream, "fanout")
+    .then(_res => Promise.all([
+      messageBroker.assertExchange(MB_EXCHANGES.user_stream, "fanout"),
+    ]))
 }
 
 export { messageBroker, initMessageBroker }

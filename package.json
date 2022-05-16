@@ -4,8 +4,10 @@
     "build": "tsc && tsc-alias",
     "start:auth": "node dist/auth_service",
     "start:tasks": "node dist/tasks_service",
+    "start:billing": "node dist/billing_service",
     "dev:auth": "nodemon --watch .env --watch src/auth_service src/auth_service/index.ts",
-    "dev:tasks": "nodemon --watch .env --watch src/tasks_service src/tasks_service/index.ts"
+    "dev:tasks": "nodemon --watch .env --watch src/tasks_service src/tasks_service/index.ts",
+    "dev:billing": "nodemon --watch .env --watch src/billing_service src/billing_service/index.ts"
   },
   "license": "ISC",
   "homepage": "https://github.com/AntePost/async_arch_edu#readme",

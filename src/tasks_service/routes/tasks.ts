@@ -22,11 +22,11 @@ import { messageBroker } from "@tasks/services"
 const tasksRouter = express.Router()
 
 tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
-  const { description, userPublicId, callerId, callerRole } = req.body
+  const { title, jiraId, userPublicId, callerId, callerRole } = req.body
 
   const assignedTo = callerRole === USER_ROLES.user ? callerId : userPublicId
 
-  const task = await Task.create({ description, assignedTo })
+  const task = await Task.create({ title, jiraId, assignedTo })
 
   {
     const dataToStream: TaskAddedV1 = {
@@ -130,7 +130,7 @@ tasksRouter.post("/reassign", expressAsyncHandler(async (req, res) => {
       attributes: ["publicId"],
     }),
     Task.findAll({
-      where: { isCompleted: false },
+      where: { status: TASK_STATUSES.inProgress },
       attributes: ["id", "publicId", "assignedTo"] }),
   ])
 

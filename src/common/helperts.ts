@@ -1,3 +1,6 @@
+import type { EVENT_NAMES } from "./constants"
+import type { Event } from "./contracts"
+
 type EnumObject = {[key: string]: number | string};
 type EnumObjectEnum<E extends EnumObject> = E extends {
     [key: string]: infer ET | string
@@ -10,4 +13,9 @@ const getEnumValues = <E extends EnumObject>(enumObject: E)
     .map(key => enumObject[key] as EnumObjectEnum<E>)
 }
 
-export { getEnumValues }
+const isCertainEvent = <E extends Event>(event: Event, name: EVENT_NAMES)
+  : event is E => {
+  return event.meta.name === name
+}
+
+export { getEnumValues, isCertainEvent }
