@@ -3,8 +3,6 @@ import type { ConsumeMessage } from "amqplib"
 import {
   EVENT_NAMES,
   MB_EXCHANGES,
-  TASK_STATUSES,
-  TRANSACTION_STATUSES,
 } from "@common/constants"
 import type {
   Event,
@@ -14,15 +12,16 @@ import type {
   TasksReassignedV1,
   UserCreatedV1,
 } from "@common/contracts"
-import { Task, User } from "@billing/models"
+import {
+  handleTaskAdded,
+  handleTaskCompleted,
+  handleTaskCreated,
+  handleTasksReassigned,
+  handleUserCreated,
+} from "@billing/handlers"
 import { RabbitMQ } from "@common/rabbitMQ"
-import { Transaction } from "@billing/models/Transaction"
 import { env } from "@billing/env"
-import { getRandomIntInclusive } from "@billing/helpers"
 import { isCertainEvent } from "@common/helperts"
-
-const deductionRange = [-20, -10] as const
-const rewardRange = [20, 40] as const
 
 const messageBroker = new RabbitMQ({
   hostname: env.RABBITMQ_HOST,
@@ -53,10 +52,9 @@ const initMessageBroker = async () => {
         const content = JSON.parse(msg.content.toString()) as Event
 
         if (isCertainEvent<UserCreatedV1>(content, EVENT_NAMES.user_created)) {
-          await User.upsert(content.data)
+          await handleUserCreated(content.data)
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
-
         }
         this.channel.ack(msg)
       }
@@ -70,7 +68,7 @@ const initMessageBroker = async () => {
         const content = JSON.parse(msg.content.toString()) as Event
 
         if (isCertainEvent<TaskCreatedV1>(content, EVENT_NAMES.task_created)) {
-          await Task.upsert(content.data)
+          await handleTaskCreated(content.data)
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
         }
@@ -89,94 +87,17 @@ const initMessageBroker = async () => {
           content,
           EVENT_NAMES.task_added,
         )) {
-          const { data } = content
-
-          const deduction = getRandomIntInclusive(...deductionRange)
-          const reward = getRandomIntInclusive(...rewardRange)
-
-          await Task.upsert(data)
-            .then(_res => Promise.all([
-              Transaction.create({
-                userId: data.assignedTo,
-                taskId: data.publicId,
-                difference: deduction,
-                status: TRANSACTION_STATUSES.deduction,
-              }),
-              Transaction.create({
-                taskId: data.publicId,
-                difference: reward,
-                status: TRANSACTION_STATUSES.unclaimed_reward,
-              }),
-            ]))
+          await handleTaskAdded(content.data)
         } else if (isCertainEvent<TaskCompletedV1>(
           content,
           EVENT_NAMES.task_completed,
         )) {
-          const { data } = content
-
-          await Promise.all([
-            Task.update(
-              { status: TASK_STATUSES.completed },
-              { where: { publicId: data.publicId } },
-            ),
-            Transaction.update(
-              {
-                userId: data.assignedTo,
-                status: TRANSACTION_STATUSES.reward,
-                claimedAt: Date.now(),
-              },
-              { where: {
-                taskId: data.publicId,
-                status: TRANSACTION_STATUSES.unclaimed_reward,
-              } },
-            ),
-          ])
+          await handleTaskCompleted(content.data)
         } else if (isCertainEvent<TasksReassignedV1>(
           content,
           EVENT_NAMES.tasks_reassigned,
         )) {
-          const { data } = content
-
-          const taskIds = data.map(task => task.publicId)
-
-          const [ tasks, transactions ] = await Promise.all([
-            Task.findAll({
-              where: {
-                publicId: taskIds,
-              },
-            }),
-            Transaction.findAll({
-              attributes: [
-                "id",
-                "taskId",
-                "difference",
-              ],
-              where: {
-                taskId: taskIds,
-                status: TRANSACTION_STATUSES.deduction,
-              },
-            }),
-          ])
-
-          const taskPromises = tasks.map(task => task.update({
-            assignedTo: data.find(taskInEv =>
-              taskInEv.publicId === task.publicId)?.assignedTo,
-          }))
-
-          const transactionPromise = Transaction.bulkCreate(data.map(task => {
-            return {
-              taskId: task.publicId,
-              userId: task.assignedTo,
-              difference: transactions.find(tr => tr.taskId === task.publicId)
-                ?.difference,
-              status: TRANSACTION_STATUSES.deduction,
-            }
-          }))
-
-          await Promise.all([
-            ...taskPromises,
-            transactionPromise,
-          ])
+          await handleTasksReassigned(content.data)
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
           return
