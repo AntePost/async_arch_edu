@@ -60,18 +60,35 @@
       "error",
       "multiline"
     ],
-    "object-curly-spacing": ["error", "always"],
+    "object-curly-spacing": [
+      "error",
+      "always",
+      {
+        "objectsInObjects": false,
+        "arraysInObjects": false
+      }
+    ],
     "no-trailing-spaces": "error",
     "sort-imports": [
       "error",
-      { "allowSeparatedGroups": true }
+      {
+        "allowSeparatedGroups": true
+      }
     ],
     "no-multi-spaces": "error",
-    "key-spacing": ["error", { "beforeColon": false }],
-    "no-multiple-empty-lines": ["error", {
+    "key-spacing": [
+      "error",
+      {
+        "beforeColon": false
+      }
+    ],
+    "no-multiple-empty-lines": [
+      "error",
+      {
         "max": 1,
         "maxEOF": 0,
         "maxBOF": 0
-    }]
+      }
+    ]
   }
 }

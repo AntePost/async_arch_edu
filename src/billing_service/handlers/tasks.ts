@@ -6,7 +6,7 @@ import type {
   TaskCreatedV2,
   TasksReassignedV1,
 } from "@common/contracts"
-import { getRandomIntInclusive } from "@billing/helpers"
+import { getRandomIntInclusive, getUnixTimestamp } from "@billing/helpers"
 
 const deductionRange = [-20, -10] as const
 const rewardRange = [20, 40] as const
@@ -26,6 +26,7 @@ const handleTaskAdded = async (data: TaskAddedV1["data"]) => {
         taskId: data.publicId,
         difference: deduction,
         status: TRANSACTION_STATUSES.deduction,
+        recordedAt: getUnixTimestamp(),
       }),
       Transaction.create({
         taskId: data.publicId,
@@ -39,18 +40,18 @@ const handleTaskCompleted = async (data: TaskCompletedV1["data"]) => {
   await Promise.all([
     Task.update(
       { status: TASK_STATUSES.completed },
-      { where: { publicId: data.publicId } },
+      { where: { publicId: data.publicId }},
     ),
     Transaction.update(
       {
         userId: data.assignedTo,
         status: TRANSACTION_STATUSES.reward,
-        claimedAt: Date.now(),
+        recordedAt: getUnixTimestamp(),
       },
       { where: {
         taskId: data.publicId,
         status: TRANSACTION_STATUSES.unclaimed_reward,
-      } },
+      }},
     ),
   ])
 }
@@ -82,6 +83,8 @@ const handleTasksReassigned = async (data: TasksReassignedV1["data"]) => {
       taskInEv.publicId === task.publicId)?.assignedTo,
   }))
 
+  const now = getUnixTimestamp()
+
   const transactionPromise = Transaction.bulkCreate(data.map(task => {
     return {
       taskId: task.publicId,
@@ -89,6 +92,7 @@ const handleTasksReassigned = async (data: TasksReassignedV1["data"]) => {
       difference: transactions.find(tr => tr.taskId === task.publicId)
         ?.difference,
       status: TRANSACTION_STATUSES.deduction,
+      recordedAt: now,
     }
   }))
 

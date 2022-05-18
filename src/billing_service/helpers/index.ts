@@ -4,4 +4,9 @@ const getRandomIntInclusive = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-export { getRandomIntInclusive }
+const getUnixTimestamp = (date?: Date) => {
+  const inMs = date?.getTime() ?? Date.now()
+  return Math.floor(inMs / 1000)
+}
+
+export { getRandomIntInclusive, getUnixTimestamp }

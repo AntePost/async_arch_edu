@@ -11,7 +11,7 @@ class Transaction extends Model {
   declare taskId: string
   declare difference: number
   declare status: TRANSACTION_STATUSES
-  declare claimedAt: string
+  declare recordedAt: number
 
   static associate(models: Record<string, ModelStatic<Model>>) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -29,7 +29,7 @@ class Transaction extends Model {
 
 Transaction.init({
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER.UNSIGNED,
     primaryKey: true,
     autoIncrement: true,
   },
@@ -78,11 +78,12 @@ Transaction.init({
       isIn: [getEnumValues(TRANSACTION_STATUSES)],
     },
   },
-  claimedAt: {
-    type: DataTypes.DATE,
+  recordedAt: {
+    type: DataTypes.BIGINT.UNSIGNED,
     allowNull: true,
     validate: {
-      isDate: true,
+      isInt: true,
+      min: 0,
     },
   },
 }, {

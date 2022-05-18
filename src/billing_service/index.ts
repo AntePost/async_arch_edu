@@ -2,7 +2,7 @@ import "dotenv/config"
 import bodyParser from "body-parser"
 import express from "express"
 
-import { db, initMessageBroker } from "@billing/services"
+import { db, initMessageBroker, scheduledJob } from "@billing/services"
 import { env } from "@billing/env"
 import { expressErrorHandler } from "@common/handlers"
 
@@ -18,6 +18,8 @@ const initApp = async () => {
     console.error(err)
     return
   }
+
+  scheduledJob.start()
 
   const app = express()
 

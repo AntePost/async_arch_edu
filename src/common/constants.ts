@@ -13,6 +13,8 @@ enum TRANSACTION_STATUSES {
   deduction = "deduction",
   unclaimed_reward = "unclaimed_reward",
   reward = "reward",
+  carry_over = "carry_over",
+  payout = "payout",
 }
 
 const enum MB_EXCHANGES {
