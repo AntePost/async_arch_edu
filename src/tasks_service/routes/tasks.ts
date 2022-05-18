@@ -74,7 +74,7 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
 tasksRouter.post("/complete", expressAsyncHandler(async (req, res) => {
   const { taskId, callerId } = req.body
 
-  const task = await Task.findOne({ where: { publicId: taskId } })
+  const task = await Task.findOne({ where: { publicId: taskId }})
 
   if (!task) {
     res.status(404).json({
@@ -131,7 +131,7 @@ tasksRouter.post("/reassign", expressAsyncHandler(async (req, res) => {
     }),
     Task.findAll({
       where: { status: TASK_STATUSES.inProgress },
-      attributes: ["id", "publicId", "assignedTo"] }),
+      attributes: ["id", "publicId", "assignedTo"]}),
   ])
 
   if (users.length === 0) {

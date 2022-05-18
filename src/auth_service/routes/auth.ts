@@ -60,7 +60,7 @@ authRouter.post("/signup", asyncHandler(async (req, res) => {
 authRouter.post("/login", asyncHandler(async (req, res) => {
   const { email, password } = req.body
 
-  const user = await User.findOne({ where: { email } })
+  const user = await User.findOne({ where: { email }})
 
   if (!user) {
     res.status(422).json({

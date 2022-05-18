@@ -26,7 +26,7 @@ const initApp = async () => {
 
   app.use(bodyParser.json())
 
-  app.use(expressjwt({ secret: env.JWT_SECRET, algorithms: ["HS256"] })
+  app.use(expressjwt({ secret: env.JWT_SECRET, algorithms: ["HS256"]})
     .unless({ path: unprotectedRoutes }))
 
   app.use("/auth", authRouter)
