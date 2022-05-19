@@ -1,15 +1,12 @@
 import "dotenv/config"
 import bodyParser from "body-parser"
 import express from "express"
-import { expressjwt } from "express-jwt"
 
-import { authRouter, proxyRouter } from "@auth/routes"
-import { db, initMessageBroker } from "@auth/services"
-import { env } from "@auth/env"
+import { db, initMessageBroker, scheduledJob } from "@billing/services"
+import { env } from "@billing/env"
 import { expressErrorHandler } from "@common/handlers"
 
-const port = env.AUTH_SERVICE_PORT
-const unprotectedRoutes = ["/auth/signup", "/auth/login"]
+const port = env.BILLING_SERVICE_PORT
 
 const initApp = async () => {
   try {
@@ -22,15 +19,11 @@ const initApp = async () => {
     return
   }
 
+  scheduledJob.start()
+
   const app = express()
 
   app.use(bodyParser.json())
-
-  app.use(expressjwt({ secret: env.JWT_SECRET, algorithms: ["HS256"]})
-    .unless({ path: unprotectedRoutes }))
-
-  app.use("/auth", authRouter)
-  app.use(proxyRouter)
 
   app.use(expressErrorHandler)
 

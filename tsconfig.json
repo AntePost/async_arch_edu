@@ -10,6 +10,7 @@
     "paths": {
       "@auth/*": ["src/auth_service/*"],
       "@tasks/*": ["src/tasks_service/*"],
+      "@billing/*": ["src/billing_service/*"],
       "@common/*": ["src/common/*"],
     },
     "baseUrl": "./",

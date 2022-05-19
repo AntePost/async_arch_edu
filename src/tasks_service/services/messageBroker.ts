@@ -1,46 +1,59 @@
 import type { ConsumeMessage } from "amqplib"
 
+import { DeadLetter, User } from "@tasks/models"
 import { EVENT_NAMES, MB_EXCHANGES } from "@common/constants"
-import type { Event, UserCreatedCudEvent } from "@common/contracts"
+import type { Event, UserCreatedV1 } from "@common/contracts"
 import { RabbitMQ } from "@common/rabbitMQ"
-import { User } from "@tasks/models"
 import { env } from "@tasks/env"
+import { isCertainEvent } from "@common/helperts"
 
 const messageBroker = new RabbitMQ({
   hostname: env.RABBITMQ_HOST,
   port: env.RABBITMQ_PORT,
   username: env.RABBITMQ_USERNAME,
   password: env.RABBITMQ_PASSWORD,
-})
+}, "undelivered_to_tasks")
 
-const queueName = `${MB_EXCHANGES.cud_user}_to_tasks`
-
-const isUserCreatedCudEvent = (event: Event): event is UserCreatedCudEvent => {
-  return event.meta.name === EVENT_NAMES.user_created
-}
+const queueName = `${MB_EXCHANGES.user_stream}_to_tasks`
 
 const initMessageBroker = async () => {
-  await messageBroker.init()
-
-  await messageBroker.assertExchange(MB_EXCHANGES.be_tasks, "fanout")
-  await messageBroker.assertExchange(MB_EXCHANGES.cud_tasks, "fanout")
-
-  await messageBroker.assertQueue(queueName)
-  await messageBroker.bindQueue(queueName, MB_EXCHANGES.cud_user)
+  await messageBroker.init(DeadLetter)
+    .then(_res => Promise.all([
+      messageBroker.assertExchange(MB_EXCHANGES.task_lifecycle, "fanout"),
+      messageBroker.assertExchange(MB_EXCHANGES.task_stream, "fanout"),
+      messageBroker.assertQueue(queueName),
+      messageBroker.bindQueue(queueName, MB_EXCHANGES.user_stream),
+    ]))
 
   messageBroker.consumeEvent(
     queueName,
     async function (this: typeof messageBroker, msg: ConsumeMessage | null) {
       if (msg) {
         const content = JSON.parse(msg.content.toString()) as Event
+        let isErr = false
 
-        if (isUserCreatedCudEvent(content)) {
+        if (isCertainEvent<UserCreatedV1>(content, EVENT_NAMES.user_created)) {
           await User.upsert(content.data)
+            .catch(err => {
+              console.log(
+                `Error when handling ${EVENT_NAMES.task_added}. Data: `,
+                content,
+                " .Error: ",
+                err,
+              )
+              isErr = true
+            })
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
-
+          isErr = true
+          return
         }
-        this.channel.ack(msg)
+
+        if (!isErr) {
+          this.consumeChannel.ack(msg)
+        } else {
+          this.consumeChannel.nack(msg, false, false)
+        }
       }
     }.bind(messageBroker),
   )

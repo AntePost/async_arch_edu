@@ -4,15 +4,16 @@ import express from "express"
 import nJwt from "njwt"
 import { promisify } from "util"
 import secureRandom from "secure-random"
+import { v4 as uuidv4 } from "uuid"
 
 import {
   EVENT_NAMES,
-  EVENT_TYPES,
   MB_EXCHANGES,
+  SERVICES,
   USER_ROLES,
 } from "@common/constants"
 import { User } from "@auth/models"
-import type { UserCreatedCudEvent } from "@common/contracts"
+import type { UserCreatedV1 } from "@common/contracts"
 import { env } from "@auth/env"
 import { messageBroker } from "@auth/services"
 
@@ -36,12 +37,13 @@ authRouter.post("/signup", asyncHandler(async (req, res) => {
     salt: salt.toString("hex"),
   })
 
-  user.toJSON()
-
-  const dataToStream: UserCreatedCudEvent = {
+  const dataToStream: UserCreatedV1 = {
     meta: {
+      id: uuidv4(),
       name: EVENT_NAMES.user_created,
-      type: EVENT_TYPES.cud,
+      version: 1,
+      producer: SERVICES.auth_service,
+      emittedAt: Date.now(),
     },
     data: {
       publicId: user.publicId,
@@ -50,7 +52,7 @@ authRouter.post("/signup", asyncHandler(async (req, res) => {
     },
   }
 
-  messageBroker.publishEvent(MB_EXCHANGES.cud_user, dataToStream)
+  messageBroker.publishEvent(MB_EXCHANGES.user_stream, dataToStream)
 
   res.status(201).json({ result: "ok" })
 }))
@@ -58,7 +60,7 @@ authRouter.post("/signup", asyncHandler(async (req, res) => {
 authRouter.post("/login", asyncHandler(async (req, res) => {
   const { email, password } = req.body
 
-  const user = await User.findOne({ where: { email } })
+  const user = await User.findOne({ where: { email }})
 
   if (!user) {
     res.status(422).json({

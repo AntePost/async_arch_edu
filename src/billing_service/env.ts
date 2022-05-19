@@ -6,7 +6,7 @@ const env = cleanEnv(process.env, {
     "development",
     "test",
   ]}),
-  TASKS_SERVICE_PORT: num(),
+  BILLING_SERVICE_PORT: num(),
   DB_CONNECTION: str({ choices: ["mysql", "mariadb", "postgres", "mssql"]}),
   DB_HOST: host(),
   DB_PORT: num(),

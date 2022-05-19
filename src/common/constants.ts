@@ -1,18 +1,26 @@
-const enum USER_ROLES {
+enum USER_ROLES {
   user = "user",
   manager = "manager",
   admin = "admin",
 }
 
-const enum MB_EXCHANGES {
-  cud_user = "cud_user",
-  cud_tasks = "cud_tasks",
-  be_tasks = "be_tasks",
+enum TASK_STATUSES {
+  inProgress = "inProgress",
+  completed = "completed",
 }
 
-const enum EVENT_TYPES {
-  cud,
-  business,
+enum TRANSACTION_STATUSES {
+  deduction = "deduction",
+  unclaimed_reward = "unclaimed_reward",
+  reward = "reward",
+  carry_over = "carry_over",
+  payout = "payout",
+}
+
+const enum MB_EXCHANGES {
+  user_stream = "user_stream",
+  task_stream = "task_stream",
+  task_lifecycle = "task_lifecycle",
 }
 
 const enum EVENT_NAMES {
@@ -23,4 +31,17 @@ const enum EVENT_NAMES {
   tasks_reassigned = "tasks_reassigned",
 }
 
-export { USER_ROLES, MB_EXCHANGES, EVENT_TYPES, EVENT_NAMES }
+const enum SERVICES {
+  auth_service = "auth_service",
+  tasks_service = "tasks_service",
+  billing_service = "billing_service",
+}
+
+export {
+  USER_ROLES,
+  TASK_STATUSES,
+  TRANSACTION_STATUSES,
+  MB_EXCHANGES,
+  EVENT_NAMES,
+  SERVICES,
+}
