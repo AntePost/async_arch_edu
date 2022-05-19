@@ -1,9 +1,9 @@
 import type { ConsumeMessage } from "amqplib"
 
+import { DeadLetter, User } from "@tasks/models"
 import { EVENT_NAMES, MB_EXCHANGES } from "@common/constants"
 import type { Event, UserCreatedV1 } from "@common/contracts"
 import { RabbitMQ } from "@common/rabbitMQ"
-import { User } from "@tasks/models"
 import { env } from "@tasks/env"
 import { isCertainEvent } from "@common/helperts"
 
@@ -17,7 +17,7 @@ const messageBroker = new RabbitMQ({
 const queueName = `${MB_EXCHANGES.user_stream}_to_tasks`
 
 const initMessageBroker = async () => {
-  await messageBroker.init()
+  await messageBroker.init(DeadLetter)
     .then(_res => Promise.all([
       messageBroker.assertExchange(MB_EXCHANGES.task_lifecycle, "fanout"),
       messageBroker.assertExchange(MB_EXCHANGES.task_stream, "fanout"),
@@ -37,7 +37,7 @@ const initMessageBroker = async () => {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
           return
         }
-        this.channel.ack(msg)
+        this.consumeChannel.ack(msg)
       }
     }.bind(messageBroker),
   )

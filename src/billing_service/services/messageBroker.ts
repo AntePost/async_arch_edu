@@ -19,6 +19,7 @@ import {
   handleTasksReassigned,
   handleUserCreated,
 } from "@billing/handlers"
+import { DeadLetter } from "@billing/models"
 import { RabbitMQ } from "@common/rabbitMQ"
 import { env } from "@billing/env"
 import { isCertainEvent } from "@common/helperts"
@@ -35,7 +36,7 @@ const tasksStreamQueue = `${MB_EXCHANGES.task_stream}_to_billing`
 const tasksLifecycleQueue = `${MB_EXCHANGES.task_lifecycle}_to_billing`
 
 const initMessageBroker = async () => {
-  await messageBroker.init()
+  await messageBroker.init(DeadLetter)
     .then(_res => Promise.all([
       messageBroker.assertQueue(userStreamQueue),
       messageBroker.bindQueue(userStreamQueue, MB_EXCHANGES.user_stream),
@@ -56,7 +57,7 @@ const initMessageBroker = async () => {
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
         }
-        this.channel.ack(msg)
+        this.consumeChannel.ack(msg)
       }
     }.bind(messageBroker),
   )
@@ -72,7 +73,7 @@ const initMessageBroker = async () => {
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
         }
-        this.channel.ack(msg)
+        this.consumeChannel.ack(msg)
       }
     }.bind(messageBroker),
   )
@@ -102,7 +103,7 @@ const initMessageBroker = async () => {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
           return
         }
-        this.channel.ack(msg)
+        this.consumeChannel.ack(msg)
       }
     }.bind(messageBroker),
   )

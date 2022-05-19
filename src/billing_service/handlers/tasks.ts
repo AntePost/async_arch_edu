@@ -6,7 +6,8 @@ import type {
   TaskCreatedV2,
   TasksReassignedV1,
 } from "@common/contracts"
-import { getRandomIntInclusive, getUnixTimestamp } from "@billing/helpers"
+import { getRandomIntInclusive } from "@common/helperts"
+import { getUnixTimestamp } from "@billing/helpers"
 
 const deductionRange = [-20, -10] as const
 const rewardRange = [20, 40] as const

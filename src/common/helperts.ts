@@ -18,4 +18,10 @@ const isCertainEvent = <E extends Event>(event: Event, name: EVENT_NAMES)
   return event.meta.name === name
 }
 
-export { getEnumValues, isCertainEvent }
+const getRandomIntInclusive = (min: number, max: number) => {
+  min = Math.ceil(min)
+  max = Math.floor(max)
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+export { getEnumValues, isCertainEvent, getRandomIntInclusive }
