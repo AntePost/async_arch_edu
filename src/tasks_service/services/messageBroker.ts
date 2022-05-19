@@ -12,7 +12,7 @@ const messageBroker = new RabbitMQ({
   port: env.RABBITMQ_PORT,
   username: env.RABBITMQ_USERNAME,
   password: env.RABBITMQ_PASSWORD,
-})
+}, "undelivered_to_tasks")
 
 const queueName = `${MB_EXCHANGES.user_stream}_to_tasks`
 
@@ -30,14 +30,30 @@ const initMessageBroker = async () => {
     async function (this: typeof messageBroker, msg: ConsumeMessage | null) {
       if (msg) {
         const content = JSON.parse(msg.content.toString()) as Event
+        let isErr = false
 
         if (isCertainEvent<UserCreatedV1>(content, EVENT_NAMES.user_created)) {
           await User.upsert(content.data)
+            .catch(err => {
+              console.log(
+                `Error when handling ${EVENT_NAMES.task_added}. Data: `,
+                content,
+                " .Error: ",
+                err,
+              )
+              isErr = true
+            })
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
+          isErr = true
           return
         }
-        this.consumeChannel.ack(msg)
+
+        if (!isErr) {
+          this.consumeChannel.ack(msg)
+        } else {
+          this.consumeChannel.nack(msg, false, false)
+        }
       }
     }.bind(messageBroker),
   )

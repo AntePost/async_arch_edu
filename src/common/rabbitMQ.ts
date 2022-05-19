@@ -24,7 +24,7 @@ class RabbitMQ {
       port: number,
       username: string,
       password: string
-    }) {}
+    }, private deadLetterExchange: string) {}
 
   async init(deadLetterModel: ModelStatic<Model>) {
     const { hostname, port, username, password } = this.authData
@@ -37,7 +37,11 @@ class RabbitMQ {
     })
     this.consumeChannel = await connection.createChannel()
     this.publishChannel = await connection.createConfirmChannel()
+
     this.deadLetterModel = deadLetterModel
+    this.assertExchange(this.deadLetterExchange, "direct")
+    this.assertQueue(`${this.deadLetterExchange}_q`, false)
+    this.bindQueue(`${this.deadLetterExchange}_q`, this.deadLetterExchange)
 
     const undeliveredCount = await this.deadLetterModel.count()
     if (undeliveredCount) {
@@ -52,8 +56,13 @@ class RabbitMQ {
     await this.publishChannel.assertExchange(name, type)
   }
 
-  async assertQueue(queue: string) {
-    await this.consumeChannel.assertQueue(queue)
+  async assertQueue(queue: string, hasDeadLetter = true) {
+    await this.consumeChannel.assertQueue(
+      queue,
+      { deadLetterExchange: hasDeadLetter
+        ? this.deadLetterExchange
+        : undefined },
+    )
   }
 
   async bindQueue(queue: string, exchange: string, pattern = "") {

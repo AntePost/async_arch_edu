@@ -29,7 +29,7 @@ const messageBroker = new RabbitMQ({
   port: env.RABBITMQ_PORT,
   username: env.RABBITMQ_USERNAME,
   password: env.RABBITMQ_PASSWORD,
-})
+}, "undelivered_to_billing")
 
 const userStreamQueue = `${MB_EXCHANGES.user_stream}_to_billing`
 const tasksStreamQueue = `${MB_EXCHANGES.task_stream}_to_billing`
@@ -83,27 +83,61 @@ const initMessageBroker = async () => {
     async function (this: typeof messageBroker, msg: ConsumeMessage | null) {
       if (msg) {
         const content = JSON.parse(msg.content.toString()) as Event
+        let isErr = false
 
         if (isCertainEvent<TaskAddedV1>(
           content,
           EVENT_NAMES.task_added,
         )) {
           await handleTaskAdded(content.data)
+            .catch(err => {
+              console.log(
+                `Error when handling ${EVENT_NAMES.task_added}. Data: `,
+                content,
+                " .Error: ",
+                err,
+              )
+              isErr = true
+            })
         } else if (isCertainEvent<TaskCompletedV1>(
           content,
           EVENT_NAMES.task_completed,
         )) {
           await handleTaskCompleted(content.data)
+            .catch(err => {
+              console.log(
+                `Error when handling ${EVENT_NAMES.task_added}. Data: `,
+                content,
+                " .Error: ",
+                err,
+              )
+              isErr = true
+            })
         } else if (isCertainEvent<TasksReassignedV1>(
           content,
           EVENT_NAMES.tasks_reassigned,
         )) {
           await handleTasksReassigned(content.data)
+            .catch(err => {
+              console.log(
+                `Error when handling ${EVENT_NAMES.task_added}. Data: `,
+                content,
+                " .Error: ",
+                err,
+              )
+              isErr = true
+            })
         } else {
           console.warn("Received unhandled message: ", JSON.stringify(msg))
+          isErr = true
           return
         }
-        this.consumeChannel.ack(msg)
+
+        if (!isErr) {
+          this.consumeChannel.ack(msg)
+        } else {
+          this.consumeChannel.nack(msg, false, false)
+        }
       }
     }.bind(messageBroker),
   )
