@@ -143,6 +143,7 @@ class RabbitMQ {
 
   private async handleUndelivered() {
     while(this.hasUndelivered) {
+      // eslint-disable-next-line no-await-in-loop
       await this.republishUndelivered()
     }
     console.log("All undelivered messages has been sent")

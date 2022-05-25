@@ -25,6 +25,7 @@
     /* Type Checking */
     "strict": true,
     "noUnusedLocals": false,
+    "noUnusedParameters": false,
     /* Completeness */
     "skipLibCheck": true
   },
