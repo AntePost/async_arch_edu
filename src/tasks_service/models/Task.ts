@@ -58,7 +58,7 @@ Task.init({
   },
   jiraId: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     unique: true,
   },
   status: {

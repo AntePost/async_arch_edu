@@ -1,7 +1,7 @@
 import { Op } from "sequelize"
 
+import { Balance, Transaction } from "@billing/models"
 import { TRANSACTION_STATUSES } from "@common/constants"
-import { Transaction } from "@billing/models"
 import { getUnixTimestamp } from "@billing/helpers"
 
 const handleBillingCycleEnd = async function() {
@@ -10,7 +10,7 @@ const handleBillingCycleEnd = async function() {
   const now = new Date()
   const currentYear = now.getUTCFullYear()
   const currentMonth = now.getUTCMonth()
-  const currentDay = 19
+  const currentDay = now.getDate()
   const timezoneOffset = now.getTimezoneOffset()
 
   const previousDayStart = getUnixTimestamp(new Date(
@@ -31,15 +31,18 @@ const handleBillingCycleEnd = async function() {
     999,
   ))
 
-  const transactions = await Transaction.findAll({ where: {
-    recordedAt: { [Op.between]: [previousDayStart, previousDayEnd]},
-    status: {
-      [Op.in]: [
-        TRANSACTION_STATUSES.deduction,
-        TRANSACTION_STATUSES.reward,
-      ],
-    },
-  }})
+  const [ transactions, balances ] = await Promise.all([
+    Transaction.findAll({ where: {
+      recordedAt: { [Op.between]: [previousDayStart, previousDayEnd]},
+      status: {
+        [Op.in]: [
+          TRANSACTION_STATUSES.deduction,
+          TRANSACTION_STATUSES.reward,
+        ],
+      },
+    }}),
+    Balance.findAll(),
+  ])
 
   console.log(`Found ${transactions.length} transactions`)
 
@@ -62,10 +65,9 @@ const handleBillingCycleEnd = async function() {
     .filter(([ , { difference }]) => difference !== 0)
     .map(([
       userId,
-      { taskId, difference },
+      { difference },
     ]) => ({
       userId,
-      taskId,
       difference,
       status: difference > 0
         ? TRANSACTION_STATUSES.payout
@@ -73,7 +75,19 @@ const handleBillingCycleEnd = async function() {
       recordedAt: nowTimestamp,
     }))
 
-  await Transaction.bulkCreate(newTransactions)
+  const updatedBalances = balances.map(b => {
+    const change = newTransactions.find(t => t.userId === b.userId)?.difference
+    if (!change || change <= 0) {
+      return null
+    }
+
+    return b.update({ amount: 0 })
+  })
+
+  await Promise.all([
+    Transaction.bulkCreate(newTransactions),
+    ...updatedBalances,
+  ])
   console.log("Finishing handling billing cycle end")
 }
 

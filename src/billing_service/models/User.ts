@@ -21,6 +21,11 @@ class User extends Model {
       foreignKey: "userId",
       as: "transactions",
     })
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.hasOne(models["Balance"]!, {
+      foreignKey: "userId",
+      as: "Balance",
+    })
   }
 }
 
