@@ -1,6 +1,6 @@
 {
   "env": {
-    "browser": false,
+    "node": true,
     "es2021": true
   },
   "extends": [
@@ -17,6 +17,50 @@
   ],
   "ignorePatterns": ["*.js"],
   "rules": {
+    "array-callback-return": [
+      "error",
+      {
+        "allowImplicit": true,
+        "checkForEach": true
+      }
+    ],
+    "no-await-in-loop": "error",
+    "no-constant-binary-expression": "error",
+    "no-constructor-return": "error",
+    "no-duplicate-imports": [
+      "error",
+      {
+        "includeExports": true
+      }
+    ],
+    "no-promise-executor-return": "error",
+    "no-self-compare": "error",
+    "no-template-curly-in-string": "error",
+    "no-undef": ["error", { "typeof": true }],
+    "no-unmodified-loop-condition": "error",
+    "no-unreachable-loop": "error",
+    "no-unsafe-negation": [
+      "error",
+      {
+        "enforceForOrderingRelations": true
+      }
+    ],
+    "no-unsafe-optional-chaining": [
+      "error",
+      {
+        "disallowArithmeticOperators": true
+      }
+    ],
+    "no-unused-private-class-members": "error",
+    "no-use-before-define": "error",
+    "require-atomic-updates": "error",
+    "use-isnan": [
+      "error",
+      {
+        "enforceForSwitchCase": true,
+        "enforceForIndexOf": true
+      }
+    ],
     "indent": [
       "error",
       2
@@ -37,7 +81,10 @@
       "error",
       {
         "args": "all",
-        "argsIgnorePattern": "^_"
+        "argsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "caughtErrors": "all",
+        "caughtErrorsIgnorePattern": "^_"
       }
     ],
     "eol-last": [
