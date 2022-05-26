@@ -2,6 +2,8 @@ enum USER_ROLES {
   user = "user",
   manager = "manager",
   admin = "admin",
+  accountant = "accountant",
+  analytic = "analytic"
 }
 
 enum TASK_STATUSES {

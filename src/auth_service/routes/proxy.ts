@@ -7,6 +7,9 @@ import { env } from "@auth/env"
 
 const servicesToPorts: Record<string, number> = {
   tasks: env.TASKS_SERVICE_PORT,
+  balances: env.BILLING_SERVICE_PORT,
+  transactions: env.BILLING_SERVICE_PORT,
+  analytics: env.BILLING_SERVICE_PORT,
 }
 
 const proxyRouter = express.Router()
@@ -20,8 +23,10 @@ proxyRouter.all(/.*/, asyncHandler(async (req: Request, res) => {
 
   const port = servicesToPorts[service]
 
+  const qs = req.url.match(/\?.+/)?.[0] ?? ""
+
   const options = {
-    url: `http://localhost:${port}${req.path}`,
+    url: `http://localhost:${port}${req.path}${qs}`,
     method: req.method,
     data: {
       ...req.body,

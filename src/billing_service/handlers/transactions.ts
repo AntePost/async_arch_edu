@@ -1,39 +1,17 @@
 import { Op } from "sequelize"
 
 import { Balance, Transaction } from "@billing/models"
+import { getBillingCycleRange, getUnixTimestamp } from "@billing/helpers"
 import { TRANSACTION_STATUSES } from "@common/constants"
-import { getUnixTimestamp } from "@billing/helpers"
 
 const handleBillingCycleEnd = async function() {
   console.log("Starting handling billing cycle end")
 
-  const now = new Date()
-  const currentYear = now.getUTCFullYear()
-  const currentMonth = now.getUTCMonth()
-  const currentDay = now.getDate()
-  const timezoneOffset = now.getTimezoneOffset()
-
-  const previousDayStart = getUnixTimestamp(new Date(
-    currentYear,
-    currentMonth,
-    currentDay - 1,
-    0,
-    -timezoneOffset,
-  ))
-
-  const previousDayEnd = getUnixTimestamp(new Date(
-    currentYear,
-    currentMonth,
-    currentDay - 1,
-    23,
-    59 - timezoneOffset,
-    59,
-    999,
-  ))
+  const { start, end } = getBillingCycleRange({ dayOffset: -1 })
 
   const [ transactions, balances ] = await Promise.all([
     Transaction.findAll({ where: {
-      recordedAt: { [Op.between]: [previousDayStart, previousDayEnd]},
+      recordedAt: { [Op.between]: [ start, end ]},
       status: {
         [Op.in]: [
           TRANSACTION_STATUSES.deduction,
@@ -62,7 +40,7 @@ const handleBillingCycleEnd = async function() {
   const nowTimestamp = getUnixTimestamp()
 
   const newTransactions = Object.entries(payments)
-    .filter(([ , { difference }]) => difference !== 0)
+    .filter(([ , { difference } ]) => difference !== 0)
     .map(([
       userId,
       { difference },

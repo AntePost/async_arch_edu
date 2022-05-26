@@ -2,6 +2,11 @@ import "dotenv/config"
 import bodyParser from "body-parser"
 import express from "express"
 
+import {
+  analyticsRouter,
+  balanceRouter,
+  transactionsRouter,
+} from "@billing/routes"
 import { db, initMessageBroker, scheduledJob } from "@billing/services"
 import { env } from "@billing/env"
 import { expressErrorHandler } from "@common/handlers"
@@ -24,6 +29,10 @@ const initApp = async () => {
   const app = express()
 
   app.use(bodyParser.json())
+
+  app.use("/balances", balanceRouter)
+  app.use("/transactions", transactionsRouter)
+  app.use("/analytics", analyticsRouter)
 
   app.use(expressErrorHandler)
 
