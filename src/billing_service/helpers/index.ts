@@ -19,7 +19,7 @@ const getBillingCycleRange = ({ year, month, day, dayOffset = 0, numOfDays = 1 }
 
   let start = getUnixTimestamp(new Date(
     year ?? now.getUTCFullYear(),
-    (month ? month : now.getUTCMonth()) - 1,
+    month ? month - 1 : now.getUTCMonth(),
     day ?? now.getUTCDate(),
     0,
     -now.getTimezoneOffset(),
