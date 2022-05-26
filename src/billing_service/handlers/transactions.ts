@@ -1,45 +1,26 @@
 import { Op } from "sequelize"
 
+import { Balance, Transaction } from "@billing/models"
+import { getBillingCycleRange, getUnixTimestamp } from "@billing/helpers"
 import { TRANSACTION_STATUSES } from "@common/constants"
-import { Transaction } from "@billing/models"
-import { getUnixTimestamp } from "@billing/helpers"
 
 const handleBillingCycleEnd = async function() {
   console.log("Starting handling billing cycle end")
 
-  const now = new Date()
-  const currentYear = now.getUTCFullYear()
-  const currentMonth = now.getUTCMonth()
-  const currentDay = 19
-  const timezoneOffset = now.getTimezoneOffset()
+  const { start, end } = getBillingCycleRange({ dayOffset: -1 })
 
-  const previousDayStart = getUnixTimestamp(new Date(
-    currentYear,
-    currentMonth,
-    currentDay - 1,
-    0,
-    -timezoneOffset,
-  ))
-
-  const previousDayEnd = getUnixTimestamp(new Date(
-    currentYear,
-    currentMonth,
-    currentDay - 1,
-    23,
-    59 - timezoneOffset,
-    59,
-    999,
-  ))
-
-  const transactions = await Transaction.findAll({ where: {
-    recordedAt: { [Op.between]: [previousDayStart, previousDayEnd]},
-    status: {
-      [Op.in]: [
-        TRANSACTION_STATUSES.deduction,
-        TRANSACTION_STATUSES.reward,
-      ],
-    },
-  }})
+  const [ transactions, balances ] = await Promise.all([
+    Transaction.findAll({ where: {
+      recordedAt: { [Op.between]: [ start, end ]},
+      status: {
+        [Op.in]: [
+          TRANSACTION_STATUSES.deduction,
+          TRANSACTION_STATUSES.reward,
+        ],
+      },
+    }}),
+    Balance.findAll(),
+  ])
 
   console.log(`Found ${transactions.length} transactions`)
 
@@ -59,13 +40,12 @@ const handleBillingCycleEnd = async function() {
   const nowTimestamp = getUnixTimestamp()
 
   const newTransactions = Object.entries(payments)
-    .filter(([ , { difference }]) => difference !== 0)
+    .filter(([ , { difference } ]) => difference !== 0)
     .map(([
       userId,
-      { taskId, difference },
+      { difference },
     ]) => ({
       userId,
-      taskId,
       difference,
       status: difference > 0
         ? TRANSACTION_STATUSES.payout
@@ -73,7 +53,19 @@ const handleBillingCycleEnd = async function() {
       recordedAt: nowTimestamp,
     }))
 
-  await Transaction.bulkCreate(newTransactions)
+  const updatedBalances = balances.map(b => {
+    const change = newTransactions.find(t => t.userId === b.userId)?.difference
+    if (!change || change <= 0) {
+      return null
+    }
+
+    return b.update({ amount: 0 })
+  })
+
+  await Promise.all([
+    Transaction.bulkCreate(newTransactions),
+    ...updatedBalances,
+  ])
   console.log("Finishing handling billing cycle end")
 }
 

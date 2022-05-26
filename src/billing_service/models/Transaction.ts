@@ -56,6 +56,7 @@ Transaction.init({
   },
   taskId: {
     type: DataTypes.UUID,
+    allowNull: true,
     references: {
       model: {
         tableName: "billing_Tasks",
