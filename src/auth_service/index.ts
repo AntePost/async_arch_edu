@@ -9,7 +9,7 @@ import { env } from "@auth/env"
 import { expressErrorHandler } from "@common/handlers"
 
 const port = env.AUTH_SERVICE_PORT
-const unprotectedRoutes = ["/auth/signup", "/auth/login"]
+const unprotectedRoutes = [ "/auth/signup", "/auth/login" ]
 
 const initApp = async () => {
   try {

@@ -9,8 +9,8 @@ import type {
 import { getRandomIntInclusive } from "@common/helperts"
 import { getUnixTimestamp } from "@billing/helpers"
 
-const deductionRange = [-20, -10] as const
-const rewardRange = [20, 40] as const
+const deductionRange = [ -20, -10 ] as const
+const rewardRange = [ 20, 40 ] as const
 
 const handleTaskCreated = async (data: TaskCreatedV2["data"]) => {
   await Task.upsert(data)
