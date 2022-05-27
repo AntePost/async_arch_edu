@@ -29,7 +29,7 @@ class Transaction extends Model {
 
 Transaction.init({
   id: {
-    type: DataTypes.INTEGER.UNSIGNED,
+    type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
   },
@@ -80,7 +80,7 @@ Transaction.init({
     },
   },
   recordedAt: {
-    type: DataTypes.BIGINT.UNSIGNED,
+    type: DataTypes.BIGINT,
     allowNull: true,
     validate: {
       isInt: true,
