@@ -35,7 +35,6 @@ User.init({
   },
   email: {
     type: DataTypes.STRING,
-    allowNull: false,
     unique: true,
     validate: {
       isEmail: true,
@@ -43,11 +42,9 @@ User.init({
   },
   passwordHash: {
     type: DataTypes.STRING,
-    allowNull: false,
   },
   salt: {
     type: DataTypes.STRING,
-    allowNull: false,
   },
 }, {
   sequelize: db,

@@ -1,4 +1,5 @@
 import express from "express"
+import expressAsyncHandler from "express-async-handler"
 import { v4 as uuidv4 } from "uuid"
 
 import {
@@ -15,7 +16,6 @@ import type {
   TaskCreatedV2,
   TasksReassignedV1,
 } from "@common/contracts"
-import expressAsyncHandler from "express-async-handler"
 import { getRandomArrEl } from "@tasks/helpers"
 import { messageBroker } from "@tasks/services"
 
@@ -131,7 +131,8 @@ tasksRouter.post("/reassign", expressAsyncHandler(async (req, res) => {
     }),
     Task.findAll({
       where: { status: TASK_STATUSES.inProgress },
-      attributes: ["id", "publicId", "assignedTo"]}),
+      attributes: [ "id", "publicId", "assignedTo" ],
+    }),
   ])
 
   if (users.length === 0) {

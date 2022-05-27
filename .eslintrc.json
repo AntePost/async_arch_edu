@@ -136,6 +136,21 @@
         "maxEOF": 0,
         "maxBOF": 0
       }
-    ]
+    ],
+    "no-return-assign": "error",
+    "object-curly-newline": [
+      "error",
+      {
+        "consistent": true
+      }
+    ],
+    "array-bracket-spacing": [
+      "error",
+      "always",
+      {
+        "singleValue": false
+      }
+    ],
+    "space-infix-ops": "error"
   }
 }

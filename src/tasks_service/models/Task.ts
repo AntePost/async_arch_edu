@@ -37,7 +37,6 @@ Task.init({
   },
   assignedTo: {
     type: DataTypes.UUID,
-    allowNull: false,
     references: {
       model: {
         tableName: "tasks_Users",
@@ -50,7 +49,6 @@ Task.init({
   },
   title: {
     type: DataTypes.STRING,
-    allowNull: false,
     unique: true,
     validate: {
       not: /\[|\]/,
