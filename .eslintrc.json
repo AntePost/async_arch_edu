@@ -151,6 +151,7 @@
         "singleValue": false
       }
     ],
-    "space-infix-ops": "error"
+    "space-infix-ops": "error",
+    "camelcase": "error"
   }
 }
