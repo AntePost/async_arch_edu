@@ -1,9 +1,9 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 
+import { SERVICES, TASK_STATUSES } from "@common/constants"
+import { getEnumValues, getTableName } from "@common/helperts"
 import { BaseTask } from "@common/models/BaseTask"
-import { TASK_STATUSES } from "@common/constants"
 import { db } from "@billing/services"
-import { getEnumValues } from "@common/helperts"
 
 class Task extends BaseTask {
   static associate(models: Record<string, ModelStatic<Model>>) {
@@ -64,7 +64,7 @@ Task.init({
   },
 }, {
   sequelize: db,
-  tableName: "billing_Tasks",
+  tableName: getTableName(SERVICES.billing, Task.name),
 })
 
 export { Task }

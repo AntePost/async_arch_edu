@@ -1,9 +1,9 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 
+import { SERVICES, USER_ROLES } from "@common/constants"
+import { getEnumValues, getTableName } from "@common/helperts"
 import { BaseUser } from "@common/models/BaseUser"
-import { USER_ROLES } from "@common/constants"
 import { db } from "@tasks/services"
-import { getEnumValues } from "@common/helperts"
 
 class User extends BaseUser {
   static associate(models: Record<string, ModelStatic<Model>>) {
@@ -45,7 +45,7 @@ User.init({
   },
 }, {
   sequelize: db,
-  tableName: "tasks_Users",
+  tableName: getTableName(SERVICES.tasks, User.name),
 })
 
 export { User }

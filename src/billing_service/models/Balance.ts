@@ -1,6 +1,8 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 
+import { SERVICES } from "@common/constants"
 import { db } from "@billing/services"
+import { getTableName } from "@common/helperts"
 
 class Balance extends Model {
   declare id: number
@@ -52,7 +54,7 @@ Balance.init({
   },
 }, {
   sequelize: db,
-  tableName: "billing_Balance",
+  tableName: getTableName(SERVICES.billing, Balance.name),
 })
 
 export { Balance }

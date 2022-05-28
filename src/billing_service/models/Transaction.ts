@@ -1,8 +1,8 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 
-import { TRANSACTION_STATUSES } from "@common/constants"
+import { SERVICES, TRANSACTION_STATUSES } from "@common/constants"
+import { getEnumValues, getTableName } from "@common/helperts"
 import { db } from "@billing/services"
-import { getEnumValues } from "@common/helperts"
 
 class Transaction extends Model {
   declare id: number
@@ -89,7 +89,7 @@ Transaction.init({
   },
 }, {
   sequelize: db,
-  tableName: "billing_Transactions",
+  tableName: getTableName(SERVICES.billing, Transaction.name),
 })
 
 export { Transaction }

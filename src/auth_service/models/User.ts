@@ -1,9 +1,9 @@
 import { DataTypes } from "sequelize"
 
+import { SERVICES, USER_ROLES } from "@common/constants"
+import { getEnumValues, getTableName } from "@common/helperts"
 import { BaseUser } from "@common/models/BaseUser"
-import { USER_ROLES } from "@common/constants"
 import { db } from "@auth/services"
-import { getEnumValues } from "@common/helperts"
 
 class User extends BaseUser {
   declare passwordHash: string
@@ -46,7 +46,7 @@ User.init({
   },
 }, {
   sequelize: db,
-  tableName: "auth_Users",
+  tableName: getTableName(SERVICES.auth, User.name),
 })
 
 export { User }

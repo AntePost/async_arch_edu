@@ -34,9 +34,9 @@ const enum EVENT_NAMES {
 }
 
 const enum SERVICES {
-  auth_service = "auth_service",
-  tasks_service = "tasks_service",
-  billing_service = "billing_service",
+  auth = "auth",
+  tasks = "tasks",
+  billing = "billing",
 }
 
 export {

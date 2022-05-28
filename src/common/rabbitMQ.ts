@@ -3,14 +3,9 @@ import rabbitmq, { Channel, ConfirmChannel } from "amqplib"
 import dedent from "ts-dedent"
 import { setTimeout } from "timers/promises"
 
+import type { BaseDeadLetter } from "./models/BaseDeadLetter"
 import { env } from "./env"
 import { getRandomInt } from "./helperts"
-
-interface DeadLetterModelFields {
-  exchange: string,
-  routing_key: string,
-  data: string,
-}
 
 class RabbitMQ {
   consumeChannel!: Channel
@@ -129,7 +124,7 @@ class RabbitMQ {
   private async republishUndelivered() {
     const oldestUndelivered = await this.deadLetterModel.findOne({ order: [[
       "createdAt", "ASC",
-    ]]}) as Model & DeadLetterModelFields
+    ]]}) as Model & Omit<BaseDeadLetter, "id">
 
     if (!oldestUndelivered) {
       this.hasUndelivered = false
@@ -138,11 +133,11 @@ class RabbitMQ {
 
     await setTimeout(this.getCurrentBackoff())
 
-    const { exchange, routing_key, data } = oldestUndelivered
+    const { exchange, routingKey, data } = oldestUndelivered
     const res = await this.publishEvent(
       exchange,
       JSON.parse(data),
-      routing_key ?? "",
+      routingKey ?? "",
     )
 
     if (res) {

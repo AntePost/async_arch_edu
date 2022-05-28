@@ -1,4 +1,4 @@
-import type { EVENT_NAMES } from "./constants"
+import type { EVENT_NAMES, SERVICES } from "./constants"
 import type { Event } from "./contracts"
 
 type EnumObject = {[key: string]: number | string};
@@ -60,10 +60,15 @@ const squashWhitespace = (
     .join("")
 }
 
+const getTableName = (service: SERVICES, table: string) => {
+  return `${service}_${table}s`
+}
+
 export {
   getEnumValues,
   isCertainEvent,
   getRandomInt,
   logEventHandlingError,
   squashWhitespace,
+  getTableName,
 }

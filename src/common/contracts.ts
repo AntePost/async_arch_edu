@@ -15,7 +15,7 @@ type UserCreatedV1 = Event & {
   meta: {
     name: EVENT_NAMES.user_created
     version: 1
-    producer: SERVICES.auth_service
+    producer: SERVICES.auth
   }
   data: {
     publicId: string
@@ -28,7 +28,7 @@ type TaskAddedV1 = Event & {
   meta: {
     name: EVENT_NAMES.task_added
     version: 1
-    producer: SERVICES.tasks_service
+    producer: SERVICES.tasks
   }
   data: {
     publicId: string
@@ -40,7 +40,7 @@ type TaskCompletedV1 = Event & {
   meta: {
     name: EVENT_NAMES.task_completed
     version: 1
-    producer: SERVICES.tasks_service
+    producer: SERVICES.tasks
   }
   data: {
     publicId: string
@@ -52,7 +52,7 @@ type TasksReassignedV1 = Event & {
   meta: {
     name: EVENT_NAMES.tasks_reassigned
     version: 1
-    producer: SERVICES.tasks_service
+    producer: SERVICES.tasks
   }
   data: {
     publicId: string
@@ -64,7 +64,7 @@ type TaskCreatedV2 = Event & {
   meta: {
     name: EVENT_NAMES.task_created
     version: 2
-    producer: SERVICES.tasks_service
+    producer: SERVICES.tasks
   }
   data: {
     publicId: string

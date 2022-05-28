@@ -56,7 +56,7 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
         eventId: uuidv4(),
         name: EVENT_NAMES.task_added,
         version: 1,
-        producer: SERVICES.tasks_service,
+        producer: SERVICES.tasks,
         emittedAt: Date.now(),
       },
       data: {
@@ -74,7 +74,7 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
         eventId: uuidv4(),
         name: EVENT_NAMES.task_created,
         version: 2,
-        producer: SERVICES.tasks_service,
+        producer: SERVICES.tasks,
         emittedAt: Date.now(),
       },
       data: {
@@ -122,7 +122,7 @@ tasksRouter.post("/complete", expressAsyncHandler(async (req, res) => {
       eventId: uuidv4(),
       name: EVENT_NAMES.task_completed,
       version: 1,
-      producer: SERVICES.tasks_service,
+      producer: SERVICES.tasks,
       emittedAt: Date.now(),
     },
     data: {
@@ -177,7 +177,7 @@ tasksRouter.post("/reassign", expressAsyncHandler(async (req, res) => {
       eventId: uuidv4(),
       name: EVENT_NAMES.tasks_reassigned,
       version: 1,
-      producer: SERVICES.tasks_service,
+      producer: SERVICES.tasks,
       emittedAt: Date.now(),
     },
     data: tasks.map(task => {

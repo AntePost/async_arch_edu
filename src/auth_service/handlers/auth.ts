@@ -42,7 +42,7 @@ const handleUserSignup = async (
       eventId: uuidv4(),
       name: EVENT_NAMES.user_created,
       version: 1,
-      producer: SERVICES.auth_service,
+      producer: SERVICES.auth,
       emittedAt: Date.now(),
     },
     data: {

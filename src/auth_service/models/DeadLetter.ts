@@ -1,7 +1,9 @@
 import { DataTypes } from "sequelize"
 
 import { BaseDeadLetter as DeadLetter } from "@common/models/BaseDeadLetter"
+import { SERVICES } from "@common/constants"
 import { db } from "@auth/services"
+import { getTableName } from "@common/helperts"
 
 DeadLetter.init({
   id: {
@@ -12,7 +14,7 @@ DeadLetter.init({
   exchange: {
     type: DataTypes.STRING,
   },
-  routing_key: {
+  routingKey: {
     type: DataTypes.STRING,
   },
   data: {
@@ -20,7 +22,7 @@ DeadLetter.init({
   },
 }, {
   sequelize: db,
-  tableName: "auth_Dead_letters",
+  tableName: getTableName(SERVICES.auth, DeadLetter.name),
 })
 
 export { DeadLetter }
