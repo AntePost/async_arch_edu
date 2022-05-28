@@ -1,17 +1,11 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 
+import { BaseTask } from "@common/models/BaseTask"
 import { TASK_STATUSES } from "@common/constants"
 import { db } from "@tasks/services"
 import { getEnumValues } from "@common/helperts"
 
-class Task extends Model {
-  declare id: number
-  declare publicId: string
-  declare assignedTo: string
-  declare title: string
-  declare jiraId: string
-  declare status: TASK_STATUSES
-
+class Task extends BaseTask {
   static associate(models: Record<string, ModelStatic<Model>>) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     Task.belongsTo(models["User"]!, {

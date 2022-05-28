@@ -1,13 +1,7 @@
-import { DataTypes, Model } from "sequelize"
+import { DataTypes } from "sequelize"
 
+import { BaseDeadLetter as DeadLetter } from "@common/models/BaseDeadLetter"
 import { db } from "@billing/services"
-
-class DeadLetter extends Model {
-  declare id: number
-  declare exchange: string
-  declare routing_key: string
-  declare data: string
-}
 
 DeadLetter.init({
   id: {

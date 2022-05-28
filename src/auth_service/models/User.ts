@@ -1,13 +1,11 @@
-import { DataTypes, Model } from "sequelize"
+import { DataTypes } from "sequelize"
 
+import { BaseUser } from "@common/models/BaseUser"
 import { USER_ROLES } from "@common/constants"
 import { db } from "@auth/services"
 import { getEnumValues } from "@common/helperts"
 
-class User extends Model {
-  declare publicId: string
-  declare role: USER_ROLES
-  declare email: string
+class User extends BaseUser {
   declare passwordHash: string
   declare salt: string
 }

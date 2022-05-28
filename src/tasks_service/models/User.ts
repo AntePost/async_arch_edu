@@ -1,15 +1,11 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 
+import { BaseUser } from "@common/models/BaseUser"
 import { USER_ROLES } from "@common/constants"
 import { db } from "@tasks/services"
 import { getEnumValues } from "@common/helperts"
 
-class User extends Model {
-  declare id: number
-  declare publicId: string
-  declare email: string
-  declare role: USER_ROLES
-
+class User extends BaseUser {
   static associate(models: Record<string, ModelStatic<Model>>) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.hasMany(models["Task"]!, {
