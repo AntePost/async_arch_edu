@@ -19,13 +19,6 @@ const expressErrorHandler: ErrorRequestHandler = ((err, _req, res, _next) => {
 
   console.error(err)
 
-  if (err.message === "Route not found") {
-    return res.status(404).json({
-      result: "error",
-      message: err.message,
-    })
-  }
-
   return res.status(500).json({
     result: "error",
     message: err.message,

@@ -18,7 +18,8 @@ proxyRouter.all(/.*/, asyncHandler(async (req: Request, res) => {
   const service = req.path.match(/\/(.*?)\//)?.[1]
 
   if (!service) {
-    throw new Error("Route not found")
+    res.sendStatus(404)
+    return
   }
 
   const port = servicesToPorts[service]
