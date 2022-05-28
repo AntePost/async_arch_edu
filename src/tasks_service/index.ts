@@ -1,1 +1,3 @@
-import "@tasks/main"
+import { initApp } from "@tasks/main"
+
+initApp()

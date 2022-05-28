@@ -1,1 +1,3 @@
-import "@billing/main"
+import { initApp } from "@billing/main"
+
+initApp()
