@@ -21,7 +21,11 @@ const generatePassword = (
   salt: crypto.BinaryLike,
 ) => pbkdf2.call(null, password, salt, 310000, 32, "sha256")
 
-const handleUserSignup = async (email: string, password: string) => {
+const handleUserSignup = async (
+  email: string,
+  password: string,
+  role = "user",
+) => {
   const salt = secureRandom(16, { type: "Buffer" })
   const passwordHash = await generatePassword(password, salt)
     .then(buf => buf.toString("hex"))
@@ -29,12 +33,13 @@ const handleUserSignup = async (email: string, password: string) => {
   const user = await User.create({
     email,
     passwordHash,
+    role,
     salt: salt.toString("hex"),
   })
 
   const dataToStream: UserCreatedV1 = {
     meta: {
-      id: uuidv4(),
+      eventId: uuidv4(),
       name: EVENT_NAMES.user_created,
       version: 1,
       producer: SERVICES.auth_service,
@@ -51,7 +56,7 @@ const handleUserSignup = async (email: string, password: string) => {
 
   return {
     code: 201,
-    body: { result: "ok" },
+    body: { result: "ok", data: { publicId: user.publicId }},
   }
 }
 

@@ -2,7 +2,7 @@ import type { EVENT_NAMES, SERVICES, USER_ROLES } from "./constants"
 
 interface Event {
   meta: {
-    id: string
+    eventId: string
     name?: EVENT_NAMES
     version?: number
     producer?: SERVICES
@@ -68,6 +68,7 @@ type TaskCreatedV2 = Event & {
   }
   data: {
     publicId: string
+    assignedTo: string
     title: string
     jiraId: string
   }

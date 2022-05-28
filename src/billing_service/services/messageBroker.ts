@@ -1,9 +1,6 @@
 import type { ConsumeMessage } from "amqplib"
 
-import {
-  EVENT_NAMES,
-  MB_EXCHANGES,
-} from "@common/constants"
+import { EVENT_NAMES, MB_EXCHANGES } from "@common/constants"
 import type {
   Event,
   TaskAddedV1,
@@ -19,10 +16,10 @@ import {
   handleTasksReassigned,
   handleUserCreated,
 } from "@billing/handlers"
+import { isCertainEvent, logEventHandlingError } from "@common/helperts"
 import { DeadLetter } from "@billing/models"
 import { RabbitMQ } from "@common/rabbitMQ"
 import { env } from "@billing/env"
-import { isCertainEvent } from "@common/helperts"
 
 const messageBroker = new RabbitMQ({
   hostname: env.RABBITMQ_HOST,
@@ -91,11 +88,8 @@ const initMessageBroker = async () => {
         )) {
           await handleTaskAdded(content.data)
             .catch(err => {
-              console.log(
-                `Error when handling ${EVENT_NAMES.task_added}. Data: `,
-                content,
-                " .Error: ",
-                err,
+              logEventHandlingError(
+                err, content, EVENT_NAMES.task_added,
               )
               isErr = true
             })
@@ -105,11 +99,8 @@ const initMessageBroker = async () => {
         )) {
           await handleTaskCompleted(content.data)
             .catch(err => {
-              console.log(
-                `Error when handling ${EVENT_NAMES.task_added}. Data: `,
-                content,
-                " .Error: ",
-                err,
+              logEventHandlingError(
+                err, content, EVENT_NAMES.task_completed,
               )
               isErr = true
             })
@@ -119,11 +110,8 @@ const initMessageBroker = async () => {
         )) {
           await handleTasksReassigned(content.data)
             .catch(err => {
-              console.log(
-                `Error when handling ${EVENT_NAMES.task_added}. Data: `,
-                content,
-                " .Error: ",
-                err,
+              logEventHandlingError(
+                err, content, EVENT_NAMES.tasks_reassigned,
               )
               isErr = true
             })

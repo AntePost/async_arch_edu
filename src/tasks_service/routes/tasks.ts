@@ -22,16 +22,38 @@ import { messageBroker } from "@tasks/services"
 const tasksRouter = express.Router()
 
 tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
-  const { title, jiraId, userPublicId, callerId, callerRole } = req.body
+  const { title, jiraId, userId, callerId, callerRole } = req.body
 
-  const assignedTo = callerRole === USER_ROLES.user ? callerId : userPublicId
+  if (!title) {
+    res.send(422).json({
+      code: 422,
+      body: {
+        result: "error",
+        message: "title is required",
+      },
+    })
+    return
+  }
+
+  if (callerRole === USER_ROLES.admin && !userId) {
+    res.send(422).json({
+      code: 422,
+      body: {
+        result: "error",
+        message: "userId is required",
+      },
+    })
+    return
+  }
+
+  const assignedTo = callerRole === USER_ROLES.user ? callerId : userId
 
   const task = await Task.create({ title, jiraId, assignedTo })
 
   {
     const dataToStream: TaskAddedV1 = {
       meta: {
-        id: uuidv4(),
+        eventId: uuidv4(),
         name: EVENT_NAMES.task_added,
         version: 1,
         producer: SERVICES.tasks_service,
@@ -49,7 +71,7 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
   {
     const dataToStream: TaskCreatedV2 = {
       meta: {
-        id: uuidv4(),
+        eventId: uuidv4(),
         name: EVENT_NAMES.task_created,
         version: 2,
         producer: SERVICES.tasks_service,
@@ -57,6 +79,7 @@ tasksRouter.post("/create", expressAsyncHandler(async (req, res) => {
       },
       data: {
         publicId: task.publicId,
+        assignedTo: task.assignedTo,
         title: task.title,
         jiraId: task.jiraId,
       },
@@ -96,7 +119,7 @@ tasksRouter.post("/complete", expressAsyncHandler(async (req, res) => {
 
   const dataToStream: TaskCompletedV1 = {
     meta: {
-      id: uuidv4(),
+      eventId: uuidv4(),
       name: EVENT_NAMES.task_completed,
       version: 1,
       producer: SERVICES.tasks_service,
@@ -151,7 +174,7 @@ tasksRouter.post("/reassign", expressAsyncHandler(async (req, res) => {
 
   const dataToStream: TasksReassignedV1 = {
     meta: {
-      id: uuidv4(),
+      eventId: uuidv4(),
       name: EVENT_NAMES.tasks_reassigned,
       version: 1,
       producer: SERVICES.tasks_service,

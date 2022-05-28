@@ -6,7 +6,7 @@ import type {
   TaskCreatedV2,
   TasksReassignedV1,
 } from "@common/contracts"
-import { getRandomIntInclusive } from "@common/helperts"
+import { getRandomInt, squashWhitespace } from "@common/helperts"
 import { getUnixTimestamp } from "@billing/helpers"
 
 const deductionRange = [ -20, -10 ] as const
@@ -19,8 +19,8 @@ const handleTaskCreated = async (data: TaskCreatedV2["data"]) => {
 const handleTaskAdded = async (data: TaskAddedV1["data"]) => {
   const { assignedTo, publicId } = data
 
-  const deduction = getRandomIntInclusive(...deductionRange)
-  const reward = getRandomIntInclusive(...rewardRange)
+  const deduction = getRandomInt(...deductionRange, true)
+  const reward = getRandomInt(...rewardRange, true)
 
   await Task.upsert(data)
     .then(_res => Promise.all([
@@ -38,7 +38,8 @@ const handleTaskAdded = async (data: TaskAddedV1["data"]) => {
       }),
       Balance.findOne({ where: { userId: assignedTo }}).then(b => {
         if (!b) {
-          console.error("Failed to lookup up balance for user ", assignedTo)
+          console.error(squashWhitespace`handleTaskAdded: \
+            Failed to lookup up balance for user`, assignedTo)
           return
         }
 
@@ -80,7 +81,8 @@ const handleTaskCompleted = async (data: TaskCompletedV1["data"]) => {
       )
       Balance.findOne({ where: { userId: assignedTo }}).then(b => {
         if (!b) {
-          console.error("Failed to lookup up balance for user ", assignedTo)
+          console.error(squashWhitespace`handleTaskCompleted: \
+            Failed to lookup up balance for user`, assignedTo)
           return
         }
 

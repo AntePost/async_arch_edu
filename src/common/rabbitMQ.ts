@@ -3,7 +3,8 @@ import rabbitmq, { Channel, ConfirmChannel } from "amqplib"
 import dedent from "ts-dedent"
 import { setTimeout } from "timers/promises"
 
-import { getRandomIntInclusive } from "./helperts"
+import { env } from "./env"
+import { getRandomInt } from "./helperts"
 
 interface DeadLetterModelFields {
   exchange: string,
@@ -56,12 +57,21 @@ class RabbitMQ {
     await this.publishChannel.assertExchange(name, type)
   }
 
-  async assertQueue(queue: string, hasDeadLetter = true) {
+  async assertQueue(
+    queue: string,
+    hasDeadLetter = true,
+    durable = env.isProd
+      ? true
+      : env.RABBITMQ_DURABLE_QUEUE_BY_DEFAULT,
+  ) {
     await this.consumeChannel.assertQueue(
       queue,
-      { deadLetterExchange: hasDeadLetter
-        ? this.deadLetterExchange
-        : undefined },
+      {
+        deadLetterExchange: hasDeadLetter
+          ? this.deadLetterExchange
+          : undefined,
+        durable,
+      },
     )
   }
 
@@ -81,8 +91,8 @@ class RabbitMQ {
       this.handlePublishNack(exchange, data, routingKey)
 
       console.error(dedent`Failed to publish message to queue.
-        Exchange ${exchange}, routing key ${routingKey}.
-        Data: `, data, " Error: ", err)
+        \nExchange ${exchange}, routing key ${routingKey}.
+        \n--- Data: `, data, "\n--- Error: ", err)
 
       return false
     }
@@ -94,7 +104,7 @@ class RabbitMQ {
     }
 
     return Math.min(
-      ((2000 ^ this.retryAttempt++) + getRandomIntInclusive(1, 999)),
+      ((2000 ^ this.retryAttempt++) + getRandomInt(1, 1000)),
       this.maxBackoff,
     )
   }
