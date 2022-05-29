@@ -1,5 +1,11 @@
-import { DataTypes, Model, ModelStatic } from "sequelize"
+import { Model, ModelStatic } from "sequelize"
 
+import {
+  INT_DEFAULT,
+  INT_PK,
+  UUIDV4,
+  UUIDV4_DEFAULT_UNIQUE,
+} from "@common/models/fields"
 import { SERVICES } from "@common/constants"
 import { db } from "@billing/services"
 import { getTableName } from "@common/helperts"
@@ -20,38 +26,18 @@ class Balance extends Model {
 }
 
 Balance.init({
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  publicId: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    unique: true,
-    validate: {
-      isUUID: 4,
-    },
-  },
+  id: INT_PK,
+  publicId: UUIDV4_DEFAULT_UNIQUE,
   userId: {
-    type: DataTypes.UUID,
+    ...UUIDV4,
     references: {
       model: {
         tableName: "billing_Users",
       },
       key: "publicId",
     },
-    validate: {
-      isUUID: 4,
-    },
   },
-  amount: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    validate: {
-      isInt: true,
-    },
-  },
+  amount: INT_DEFAULT(0),
 }, {
   sequelize: db,
   tableName: getTableName(SERVICES.billing, Balance.name),

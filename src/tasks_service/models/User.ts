@@ -1,9 +1,15 @@
-import { DataTypes, Model, ModelStatic } from "sequelize"
+import type { Model, ModelStatic } from "sequelize"
 
+import {
+  EMAIL_UNIQUE,
+  ENUM_IN_MODEL,
+  INT_PK,
+  UUIDV4_DEFAULT_UNIQUE,
+} from "@common/models/fields"
 import { SERVICES, USER_ROLES } from "@common/constants"
-import { getEnumValues, getTableName } from "@common/helperts"
 import { BaseUser } from "@common/models/BaseUser"
 import { db } from "@tasks/services"
+import { getTableName } from "@common/helperts"
 
 class User extends BaseUser {
   static associate(models: Record<string, ModelStatic<Model>>) {
@@ -16,33 +22,10 @@ class User extends BaseUser {
 }
 
 User.init({
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  publicId: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    unique: true,
-    validate: {
-      isUUID: 4,
-    },
-  },
-  role: {
-    type: DataTypes.STRING,
-    defaultValue: "user",
-    validate: {
-      isIn: [getEnumValues(USER_ROLES)],
-    },
-  },
-  email: {
-    type: DataTypes.STRING,
-    unique: true,
-    validate: {
-      isEmail: true,
-    },
-  },
+  id: INT_PK,
+  publicId: UUIDV4_DEFAULT_UNIQUE,
+  role: ENUM_IN_MODEL(USER_ROLES, USER_ROLES.user),
+  email: EMAIL_UNIQUE,
 }, {
   sequelize: db,
   tableName: getTableName(SERVICES.tasks, User.name),

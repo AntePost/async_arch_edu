@@ -1,8 +1,16 @@
-import { DataTypes, Model, ModelStatic } from "sequelize"
+import { Model, ModelStatic } from "sequelize"
 
+import {
+  ENUM_IN_MODEL,
+  INT,
+  INT_PK,
+  INT_POSITIVE,
+  UUIDV4,
+  UUIDV4_DEFAULT_UNIQUE,
+} from "@common/models/fields"
 import { SERVICES, TRANSACTION_STATUSES } from "@common/constants"
-import { getEnumValues, getTableName } from "@common/helperts"
 import { db } from "@billing/services"
+import { getTableName } from "@common/helperts"
 
 class Transaction extends Model {
   declare id: number
@@ -28,21 +36,10 @@ class Transaction extends Model {
 }
 
 Transaction.init({
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  publicId: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    unique: true,
-    validate: {
-      isUUID: 4,
-    },
-  },
+  id: INT_PK,
+  publicId: UUIDV4_DEFAULT_UNIQUE,
   userId: {
-    type: DataTypes.UUID,
+    ...UUIDV4,
     allowNull: true,
     references: {
       model: {
@@ -50,12 +47,9 @@ Transaction.init({
       },
       key: "publicId",
     },
-    validate: {
-      isUUID: 4,
-    },
   },
   taskId: {
-    type: DataTypes.UUID,
+    ...UUIDV4,
     allowNull: true,
     references: {
       model: {
@@ -63,30 +57,10 @@ Transaction.init({
       },
       key: "publicId",
     },
-    validate: {
-      isUUID: 4,
-    },
   },
-  difference: {
-    type: DataTypes.INTEGER,
-    validate: {
-      isInt: true,
-    },
-  },
-  status: {
-    type: DataTypes.STRING,
-    validate: {
-      isIn: [getEnumValues(TRANSACTION_STATUSES)],
-    },
-  },
-  recordedAt: {
-    type: DataTypes.BIGINT,
-    allowNull: true,
-    validate: {
-      isInt: true,
-      min: 0,
-    },
-  },
+  difference: INT,
+  status: ENUM_IN_MODEL(TRANSACTION_STATUSES),
+  recordedAt: INT_POSITIVE,
 }, {
   sequelize: db,
   tableName: getTableName(SERVICES.billing, Transaction.name),

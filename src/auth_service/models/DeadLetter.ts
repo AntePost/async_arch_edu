@@ -1,16 +1,13 @@
 import { DataTypes } from "sequelize"
 
 import { BaseDeadLetter as DeadLetter } from "@common/models/BaseDeadLetter"
+import { INT_PK } from "@common/models/fields"
 import { SERVICES } from "@common/constants"
 import { db } from "@auth/services"
 import { getTableName } from "@common/helperts"
 
 DeadLetter.init({
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+  id: INT_PK,
   exchange: {
     type: DataTypes.STRING,
   },

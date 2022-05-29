@@ -1,7 +1,7 @@
 import type { EVENT_NAMES, SERVICES } from "./constants"
+import type { EnumObject } from "./interfaces"
 import type { Event } from "./contracts"
 
-type EnumObject = {[key: string]: number | string};
 type EnumObjectEnum<E extends EnumObject> = E extends {
     [key: string]: infer ET | string
   } ? ET : never;
@@ -64,6 +64,14 @@ const getTableName = (service: SERVICES, table: string) => {
   return `${service}_${table}s`
 }
 
+const mixKey = (key?: unknown) => {
+  if (key != null) {
+    return { key }
+  }
+
+  return {}
+}
+
 export {
   getEnumValues,
   isCertainEvent,
@@ -71,4 +79,5 @@ export {
   logEventHandlingError,
   squashWhitespace,
   getTableName,
+  mixKey,
 }
