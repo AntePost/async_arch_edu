@@ -8,7 +8,8 @@
     "dev:auth": "nodemon --watch .env --watch src/auth_service src/auth_service/index.ts",
     "dev:tasks": "nodemon --watch .env --watch src/tasks_service src/tasks_service/index.ts",
     "dev:billing": "nodemon --watch .env --watch src/billing_service src/billing_service/index.ts",
-    "db:seed": "ts-node src/seeders/index.ts"
+    "db:seed": "ts-node src/seeders/index.ts",
+    "lint": "eslint ."
   },
   "license": "ISC",
   "homepage": "https://github.com/AntePost/async_arch_edu#readme",
