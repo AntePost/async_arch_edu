@@ -1,11 +1,18 @@
 import type { Model, ModelStatic } from "sequelize"
-import rabbitmq, { Channel, ConfirmChannel } from "amqplib"
+import rabbitmq, { Channel, ConfirmChannel, ConsumeMessage } from "amqplib"
 import dedent from "ts-dedent"
 import { setTimeout } from "timers/promises"
 
+import { getRandomInt, logEventHandlingError } from "./helperts"
 import type { BaseDeadLetter } from "./models/BaseDeadLetter"
+import type { EVENT_NAMES } from "./constants"
+import type { Event } from "./contracts"
 import { env } from "./env"
-import { getRandomInt } from "./helperts"
+
+type PossibleHandlers = Partial<Record<
+  EVENT_NAMES,
+  (data: never) => Promise<void>
+>>
 
 class RabbitMQ {
   consumeChannel!: Channel
@@ -154,11 +161,41 @@ class RabbitMQ {
     console.log("All undelivered messages has been sent")
   }
 
-  consumeEvent(
-    queue: string,
-    cb: (msg: rabbitmq.ConsumeMessage | null) => void,
-  ) {
-    this.consumeChannel.consume(queue, cb)
+  getEventHandlerWrapper(eventHanlders: PossibleHandlers) {
+    return async (msg: ConsumeMessage | null) => {
+      if (msg) {
+        const content = JSON.parse(msg.content.toString()) as Event
+        let isErr = false
+
+        const handler = eventHanlders[content.meta.name]
+
+        if (handler) {
+          await handler(content.data as Parameters<typeof handler>[0])
+            .catch(err => {
+              logEventHandlingError(
+                err, content, content.meta.name,
+              )
+              isErr = true
+            })
+        } else {
+          console.error("Received unhandled message: ", JSON.stringify(msg))
+          isErr = true
+        }
+
+        if (!isErr) {
+          this.consumeChannel.ack(msg)
+        } else {
+          this.consumeChannel.nack(msg, false, false)
+        }
+      }
+    }
+  }
+
+  addEventHandlers(queue: string, eventHanlders: PossibleHandlers) {
+    this.consumeChannel.consume(
+      queue,
+      this.getEventHandlerWrapper(eventHanlders),
+    )
   }
 }
 

@@ -3,9 +3,9 @@ import type { EVENT_NAMES, SERVICES, USER_ROLES } from "./constants"
 interface Event {
   meta: {
     eventId: string
-    name?: EVENT_NAMES
-    version?: number
-    producer?: SERVICES
+    name: EVENT_NAMES
+    version: number
+    producer: SERVICES
     emittedAt: number
   }
   data: unknown

@@ -1,14 +1,4 @@
-import type { ConsumeMessage } from "amqplib"
-
 import { EVENT_NAMES, MB_EXCHANGES } from "@common/constants"
-import type {
-  Event,
-  TaskAddedV1,
-  TaskCompletedV1,
-  TaskCreatedV2,
-  TasksReassignedV1,
-  UserCreatedV1,
-} from "@common/contracts"
 import {
   handleTaskAdded,
   handleTaskCompleted,
@@ -16,7 +6,6 @@ import {
   handleTasksReassigned,
   handleUserCreated,
 } from "@billing/handlers"
-import { isCertainEvent, logEventHandlingError } from "@common/helperts"
 import { DeadLetter } from "@billing/models"
 import { RabbitMQ } from "@common/rabbitMQ"
 import { env } from "@billing/env"
@@ -43,91 +32,15 @@ const initMessageBroker = async () => {
       messageBroker.bindQueue(tasksLifecycleQueue, MB_EXCHANGES.task_lifecycle),
     ]))
 
-  messageBroker.consumeEvent(
+  messageBroker.addEventHandlers(
     userStreamQueue,
-    async function (this: typeof messageBroker, msg: ConsumeMessage | null) {
-      if (msg) {
-        const content = JSON.parse(msg.content.toString()) as Event
-
-        if (isCertainEvent<UserCreatedV1>(content, EVENT_NAMES.user_created)) {
-          await handleUserCreated(content.data)
-        } else {
-          console.warn("Received unhandled message: ", JSON.stringify(msg))
-        }
-        this.consumeChannel.ack(msg)
-      }
-    }.bind(messageBroker),
-  )
-
-  messageBroker.consumeEvent(
-    tasksStreamQueue,
-    async function (this: typeof messageBroker, msg: ConsumeMessage | null) {
-      if (msg) {
-        const content = JSON.parse(msg.content.toString()) as Event
-
-        if (isCertainEvent<TaskCreatedV2>(content, EVENT_NAMES.task_created)) {
-          await handleTaskCreated(content.data)
-        } else {
-          console.warn("Received unhandled message: ", JSON.stringify(msg))
-        }
-        this.consumeChannel.ack(msg)
-      }
-    }.bind(messageBroker),
-  )
-
-  messageBroker.consumeEvent(
-    tasksLifecycleQueue,
-    async function (this: typeof messageBroker, msg: ConsumeMessage | null) {
-      if (msg) {
-        const content = JSON.parse(msg.content.toString()) as Event
-        let isErr = false
-
-        if (isCertainEvent<TaskAddedV1>(
-          content,
-          EVENT_NAMES.task_added,
-        )) {
-          await handleTaskAdded(content.data)
-            .catch(err => {
-              logEventHandlingError(
-                err, content, EVENT_NAMES.task_added,
-              )
-              isErr = true
-            })
-        } else if (isCertainEvent<TaskCompletedV1>(
-          content,
-          EVENT_NAMES.task_completed,
-        )) {
-          await handleTaskCompleted(content.data)
-            .catch(err => {
-              logEventHandlingError(
-                err, content, EVENT_NAMES.task_completed,
-              )
-              isErr = true
-            })
-        } else if (isCertainEvent<TasksReassignedV1>(
-          content,
-          EVENT_NAMES.tasks_reassigned,
-        )) {
-          await handleTasksReassigned(content.data)
-            .catch(err => {
-              logEventHandlingError(
-                err, content, EVENT_NAMES.tasks_reassigned,
-              )
-              isErr = true
-            })
-        } else {
-          console.warn("Received unhandled message: ", JSON.stringify(msg))
-          isErr = true
-          return
-        }
-
-        if (!isErr) {
-          this.consumeChannel.ack(msg)
-        } else {
-          this.consumeChannel.nack(msg, false, false)
-        }
-      }
-    }.bind(messageBroker),
+    {
+      [EVENT_NAMES.user_created]: handleUserCreated,
+      [EVENT_NAMES.task_added]: handleTaskAdded,
+      [EVENT_NAMES.task_completed]: handleTaskCompleted,
+      [EVENT_NAMES.tasks_reassigned]: handleTasksReassigned,
+      [EVENT_NAMES.task_created]: handleTaskCreated,
+    },
   )
 }
 
