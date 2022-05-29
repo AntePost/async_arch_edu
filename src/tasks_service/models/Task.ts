@@ -48,7 +48,7 @@ Task.init({
   status: ENUM_IN_MODEL(TASK_STATUSES, TASK_STATUSES.inProgress),
 }, {
   sequelize: db,
-  tableName: getTableName(SERVICES.auth, Task.name),
+  tableName: getTableName(SERVICES.tasks, Task.name),
 })
 
 export { Task }
